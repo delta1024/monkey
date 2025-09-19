@@ -23,6 +23,11 @@ TokenType :: enum u8 {
 	RBrace,
 	Function,
 	Let,
+	True,
+	False,
+	If,
+	Else,
+	Return,
 }
 
 token_names := [TokenType]string {
@@ -46,6 +51,11 @@ token_names := [TokenType]string {
 	.RBrace    = "}",
 	.Function  = "FUNCTION",
 	.Let       = "LET",
+	.True      = "TRUE",
+	.False     = "FALSE",
+	.If        = "IF",
+	.Else      = "ELSE",
+	.Return    = "RETURN",
 }
 
 Token :: struct {

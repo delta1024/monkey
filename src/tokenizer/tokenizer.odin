@@ -80,8 +80,13 @@ skip_whitespace :: proc(tokenizer: ^Tokenizer) {
 @(private = "file")
 lookup_ident :: proc(ident: string) -> TokenType {
 	keywords := map[string]TokenType {
-		"fn"  = .Function,
-		"let" = .Let,
+		"fn"     = .Function,
+		"let"    = .Let,
+		"true"   = .True,
+		"false"  = .False,
+		"if"     = .If,
+		"else"   = .Else,
+		"return" = .Return,
 	}
 	defer delete(keywords)
 	ident, ok := keywords[ident]

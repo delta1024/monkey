@@ -153,3 +153,45 @@ test_single_char_tokens_extended :: proc(t: ^testing.T) {
 		assert_token_eq(t, expected, token)
 	}
 }
+@(test)
+test_remaining_keywords :: proc(t: ^testing.T) {
+	input :: `if (5 < 10) {
+    return true;
+} else {
+    return false;
+}`
+
+
+	RETURN :: tokenizer.Token{.Return, "return"}
+	SCOLON :: tokenizer.Token{.Semicolon, ";"}
+
+	using tokenizer
+	tests := []Token {
+		{.If, "if"},
+		{.LParen, "("},
+		{.Int, "5"},
+		{.Lt, "<"},
+		{.Int, "10"},
+		{.RParen, ")"},
+		{.LBrace, "{"},
+		RETURN,
+		{.True, "true"},
+		SCOLON,
+		{.RBrace, "}"},
+		{.Else, "else"},
+		{.LBrace, "{"},
+		RETURN,
+		{.False, "false"},
+		SCOLON,
+		{.RBrace, "}"},
+		{.Eof, ""},
+	}
+
+	lexer: Tokenizer
+	tokenizer_init(&lexer, input)
+
+	for expected in tests {
+		token := tokenizer_next(&lexer)
+		assert_token_eq(t, expected, token)
+	}
+}
