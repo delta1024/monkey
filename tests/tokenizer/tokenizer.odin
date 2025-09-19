@@ -24,7 +24,7 @@ assert_token_eq :: proc(t: ^testing.T, expected, token: tokenizer.Token, loc := 
 }
 @(test)
 test_single_character_tokens :: proc(t: ^testing.T) {
-	input := "=;(){},+"
+	input := `=;(){},+`
 
 	lexer: tokenizer.Tokenizer
 	tokenizer.tokenizer_init(&lexer, input)
@@ -115,6 +115,41 @@ let result = add(five, ten);`
 	tokenizer.tokenizer_init(&lexer, input)
 	for expected in tests {
 		token := tokenizer.tokenizer_next(&lexer)
+		assert_token_eq(t, expected, token)
+	}
+}
+
+@(test)
+test_single_char_tokens_extended :: proc(t: ^testing.T) {
+	input :: `!-/*5;
+5 < 10 > 5;`
+
+
+	using tokenizer
+	FIVE :: tokenizer.Token{.Int, "5"}
+	SCOLON :: tokenizer.Token{.Semicolon, ";"}
+	TEN :: tokenizer.Token{.Int, "10"}
+
+	tests := []Token {
+		{.Bang, "!"},
+		{.Minus, "-"},
+		{.Slash, "/"},
+		{.Asterisk, "*"},
+		FIVE,
+		SCOLON,
+		FIVE,
+		{.Lt, "<"},
+		TEN,
+		{.Gt, ">"},
+		FIVE,
+		SCOLON,
+		{.Eof, ""},
+	}
+
+	lexer: Tokenizer
+	tokenizer_init(&lexer, input)
+	for expected in tests {
+		token := tokenizer_next(&lexer)
 		assert_token_eq(t, expected, token)
 	}
 }

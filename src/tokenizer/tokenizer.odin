@@ -35,6 +35,18 @@ tokenizer_next :: proc(tokenizer: ^Tokenizer) -> (tok: Token) {
 		tok = new_token(.LBrace, tokenizer)
 	case '}':
 		tok = new_token(.RBrace, tokenizer)
+	case '!':
+		tok = new_token(.Bang, tokenizer)
+	case '-':
+		tok = new_token(.Minus, tokenizer)
+	case '/':
+		tok = new_token(.Slash, tokenizer)
+	case '*':
+		tok = new_token(.Asterisk, tokenizer)
+	case '<':
+		tok = new_token(.Lt, tokenizer)
+	case '>':
+		tok = new_token(.Gt, tokenizer)
 	case 0:
 		tok.literal = ""
 		tok.type = .Eof
