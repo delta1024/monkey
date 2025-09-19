@@ -195,3 +195,34 @@ test_remaining_keywords :: proc(t: ^testing.T) {
 		assert_token_eq(t, expected, token)
 	}
 }
+
+@(test)
+test_multichar_tokens :: proc(t: ^testing.T) {
+	input :: `10 == 10;
+	10 != 9;`
+
+
+	TEN :: tokenizer.Token{.Int, "10"}
+	SCOLON :: tokenizer.Token{.Semicolon, ";"}
+
+	using tokenizer
+	tests := []Token {
+		TEN,
+		{.Eq, "=="},
+		TEN,
+		SCOLON,
+		TEN,
+		{.Not_Eq, "!="},
+		{.Int, "9"},
+		SCOLON,
+		{.Eof, ""},
+	}
+
+	lexer: Tokenizer
+	tokenizer_init(&lexer, input)
+
+	for expected in tests {
+		token := tokenizer_next(&lexer)
+		assert_token_eq(t, expected, token)
+	}
+}

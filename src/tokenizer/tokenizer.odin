@@ -19,7 +19,13 @@ tokenizer_next :: proc(tokenizer: ^Tokenizer) -> (tok: Token) {
 	skip_whitespace(tokenizer)
 	switch tokenizer.ch {
 	case '=':
-		tok = new_token(.Assign, tokenizer)
+		if peek_char(tokenizer) == '=' {
+			read_char(tokenizer)
+			tok = new_token(.Eq, tokenizer, tokenizer.position - 1)
+		} else {
+
+			tok = new_token(.Assign, tokenizer)
+		}
 
 	case ';':
 		tok = new_token(.Semicolon, tokenizer)
@@ -36,7 +42,12 @@ tokenizer_next :: proc(tokenizer: ^Tokenizer) -> (tok: Token) {
 	case '}':
 		tok = new_token(.RBrace, tokenizer)
 	case '!':
-		tok = new_token(.Bang, tokenizer)
+		if peek_char(tokenizer) == '=' {
+			read_char(tokenizer)
+			tok = new_token(.Not_Eq, tokenizer, tokenizer.position - 1)
+		} else {
+			tok = new_token(.Bang, tokenizer)
+		}
 	case '-':
 		tok = new_token(.Minus, tokenizer)
 	case '/':
@@ -65,6 +76,15 @@ tokenizer_next :: proc(tokenizer: ^Tokenizer) -> (tok: Token) {
 	}
 	read_char(tokenizer)
 	return
+}
+
+@(private = "file")
+peek_char :: proc(using tokenizer: ^Tokenizer) -> u8 {
+	if read_position >= len(input) {
+		return 0
+	} else {
+		return input[read_position]
+	}
 }
 
 @(private = "file")
