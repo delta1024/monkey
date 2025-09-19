@@ -1,3 +1,4 @@
+#+feature dynamic-literals
 package tokenizer
 
 Tokenizer :: struct {
@@ -14,18 +15,8 @@ tokenizer_init :: proc(tokenizer: ^Tokenizer, source: string) {
 	read_char(tokenizer)
 }
 
-@(private = "file")
-read_char :: proc(tokenizer: ^Tokenizer) {
-	if tokenizer.read_position >= len(tokenizer.input) {
-		tokenizer.ch = 0
-	} else {
-		tokenizer.ch = tokenizer.input[tokenizer.read_position]
-	}
-	tokenizer.position = tokenizer.read_position
-	tokenizer.read_position += 1
-}
-
 tokenizer_next :: proc(tokenizer: ^Tokenizer) -> (tok: Token) {
+	skip_whitespace(tokenizer)
 	switch tokenizer.ch {
 	case '=':
 		tok = new_token(.Assign, tokenizer)
@@ -48,10 +39,84 @@ tokenizer_next :: proc(tokenizer: ^Tokenizer) -> (tok: Token) {
 		tok.literal = ""
 		tok.type = .Eof
 	case:
-		tok = new_token(.Illegal, "Unknown token")
+		if is_letter(tokenizer.ch) {
+			tok.literal = read_identifier(tokenizer)
+			tok.type = lookup_ident(tok.literal)
+			return
+		} else if is_digit(tokenizer.ch) {
+			tok.type = .Int
+			tok.literal = read_number(tokenizer)
+			return
+		} else {
+			tok = new_token(.Illegal, "Unknown token")
+		}
 	}
 	read_char(tokenizer)
 	return
+}
+
+@(private = "file")
+skip_whitespace :: proc(tokenizer: ^Tokenizer) {
+	for tokenizer.ch == ' ' ||
+	    tokenizer.ch == '\t' ||
+	    tokenizer.ch == '\n' ||
+	    tokenizer.ch == '\r' {
+		read_char(tokenizer)
+	}
+}
+
+@(private = "file")
+lookup_ident :: proc(ident: string) -> TokenType {
+	keywords := map[string]TokenType {
+		"fn"  = .Function,
+		"let" = .Let,
+	}
+	defer delete(keywords)
+	ident, ok := keywords[ident]
+	if !ok {
+		ident = TokenType.Ident
+	}
+	return ident
+}
+
+@(private = "file")
+is_letter :: proc(ch: u8) -> bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+@(private = "file")
+read_identifier :: proc(tokenizer: ^Tokenizer) -> string {
+	position := tokenizer.position
+	for is_letter(tokenizer.ch) {
+		read_char(tokenizer)
+	}
+	return tokenizer.input[position:tokenizer.position]
+}
+
+@(private = "file")
+is_digit :: proc(ch: u8) -> bool {
+	return '0' <= ch && ch <= '9'
+}
+
+@(private = "file")
+read_number :: proc(tokenizer: ^Tokenizer) -> string {
+	position := tokenizer.position
+
+	for is_digit(tokenizer.ch) {
+		read_char(tokenizer)
+	}
+	return tokenizer.input[position:tokenizer.position]
+}
+
+@(private = "file")
+read_char :: proc(tokenizer: ^Tokenizer) {
+	if tokenizer.read_position >= len(tokenizer.input) {
+		tokenizer.ch = 0
+	} else {
+		tokenizer.ch = tokenizer.input[tokenizer.read_position]
+	}
+	tokenizer.position = tokenizer.read_position
+	tokenizer.read_position += 1
 }
 
 
