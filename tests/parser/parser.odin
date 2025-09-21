@@ -20,6 +20,7 @@ let foobar = 838383;
 	defer parser_destroy(parser)
 
 	program := parse_program(&parser)
+	check_parser_error(t, &parser)
 	if program == nil {
 		testing.fail_now(t, "parse_program() returned nil")
 	}

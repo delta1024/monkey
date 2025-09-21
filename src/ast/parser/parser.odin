@@ -2,15 +2,18 @@ package parser
 
 import "../../ast"
 import "../../tokenizer"
+import "core:fmt"
 
 Parser :: struct {
 	lexer:                 tokenizer.Tokenizer,
 	cur_token, peek_token: tokenizer.Token,
+	errors:                [dynamic]string,
 }
 
 parser_create :: proc(lexer: tokenizer.Tokenizer) -> Parser {
 	parser := Parser {
-		lexer = lexer,
+		lexer  = lexer,
+		errors = make([dynamic]string),
 	}
 
 	next_token(&parser)
@@ -18,7 +21,13 @@ parser_create :: proc(lexer: tokenizer.Tokenizer) -> Parser {
 	return parser
 }
 
-parser_destroy :: proc(using parser: Parser) {}
+parser_destroy :: proc(using parser: Parser) {
+	for err in errors {
+		delete(err)
+	}
+	delete(errors)
+}
+
 parse_program :: proc(using parser: ^Parser) -> ^ast.Program {
 	program := ast.node_make(ast.Program)
 
@@ -55,6 +64,17 @@ expect_peek :: proc(using parser: ^Parser, t: tokenizer.TokenType) -> bool {
 		next_token(parser)
 		return true
 	} else {
+		peek_error(parser, t)
 		return false
 	}
+}
+
+@(private)
+peek_error :: proc(using parser: ^Parser, t: tokenizer.TokenType) {
+	msg := fmt.aprintfln(
+		"expected next token to be %s, got %s instead",
+		tokenizer.token_names[t],
+		tokenizer.token_names[peek_token.type],
+	)
+	append(&errors, msg)
 }
