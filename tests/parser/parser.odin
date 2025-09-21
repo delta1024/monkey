@@ -81,3 +81,22 @@ return 993322;
 
 
 }
+@(test)
+test_string :: proc(t: ^testing.T) {
+	using ast
+	stmts := make([dynamic]Statement)
+	append(
+		&stmts,
+		&LetStatement {
+			token = {.Let, "let"},
+			name = &Identifier{token = {.Ident, "myVar"}, value = "myVar"},
+			value = &Identifier{token = {.Ident, "anotherVar"}, value = "anotherVar"},
+		},
+	)
+	defer delete(stmts)
+	program := &Program{statements = stmts}
+	program_str := node_string(program)
+	defer delete(program_str)
+
+	testing.expect_value(t, program_str, "let myVar = anotherVar;")
+}
