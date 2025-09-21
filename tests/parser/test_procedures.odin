@@ -2,12 +2,14 @@ package parser_tests
 
 import "../../src/ast"
 import "../../src/ast/parser"
+import "base:builtin"
 import "core:fmt"
 import "core:strings"
 import "core:testing"
 @(private)
 test_let_statement :: proc(
 	t: ^testing.T,
+	var_name: string,
 	stmt: ast.Statement,
 	name: string,
 	loc := #caller_location,
@@ -19,8 +21,10 @@ test_let_statement :: proc(
 		ast.token_literal(stmt),
 		loc = loc,
 	)
-	let_stmt := stmt.(^ast.LetStatement)
-
+	let_stmt, ok := stmt.(^ast.LetStatement)
+	if !ok {
+		fail_expected_statement(t, var_name, "ast.LetStatement", stmt, loc = loc)
+	}
 	testing.expectf(
 		t,
 		let_stmt.name.value == name,
@@ -50,11 +54,15 @@ check_parser_error :: proc(t: ^testing.T, using parser: ^parser.Parser, loc := #
 @(private)
 test_integer_literal :: proc(
 	t: ^testing.T,
+	var_name: string,
 	int_lit: ast.Expression,
 	value: i64,
 	loc := #caller_location,
 ) {
-	integer := int_lit.(^ast.IntegerLiteral)
+	integer, ok := int_lit.(^ast.IntegerLiteral)
+	if !ok {
+		fail_expected_expression(t, var_name, "ast.IntegerLiteral", int_lit, loc = loc)
+	}
 
 	testing.expectf(
 		t,
@@ -78,4 +86,113 @@ test_integer_literal :: proc(
 	)
 
 
+}
+
+@(private)
+test_literal_expression :: proc {
+	test_integer_literal,
+	test_identifier,
+}
+@(private)
+test_infix_expression :: proc(
+	t: ^testing.T,
+	var_name: string,
+	exp: ast.Expression,
+	left: $T,
+	operator: string,
+	right: $U,
+	loc := #caller_location,
+) {
+	op_exp, ok := exp.(^ast.InfixExpression)
+	if !ok {
+		fail_expected_expression(t, var_name, "ast.InfixExpression", exp, loc = loc)
+	}
+
+	test_literal_expression(t, "op_exp.left", op_exp.left, left, loc = loc)
+
+	testing.expectf(
+		t,
+		op_exp.operator == operator,
+		"op_exp.operator is not '%s'. got=%s",
+		operator,
+		op_exp.operator,
+	)
+
+	test_literal_expression(t, "op_exp.right", op_exp.right, right, loc = loc)
+}
+@(private)
+test_identifier :: proc(
+	t: ^testing.T,
+	var_name: string,
+	exp: ast.Expression,
+	value: string,
+	loc := #caller_location,
+) {
+	ident, ok := exp.(^ast.Identifier)
+
+	if !ok {
+		fail_expected_expression(t, var_name, "ast.Identifier", exp)
+	}
+
+	testing.expectf(
+		t,
+		ident.value == value,
+		"ident.value not %s. got=%s",
+		value,
+		ident.value,
+		loc = loc,
+	)
+
+	testing.expectf(
+		t,
+		ast.token_literal(ident) == value,
+		"token_literal(ident) not %s. got=%s",
+		value,
+		ast.token_literal(ident),
+		loc = loc,
+	)
+
+}
+@(private)
+fail_expected_expression :: proc(
+	t: ^testing.T,
+	field_name, expected_name: string,
+	value: ast.Expression,
+	loc := #caller_location,
+) {
+	switch expr in value {
+	case ^ast.Identifier:
+		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
+	case ^ast.IntegerLiteral:
+		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
+	case ^ast.InfixExpression:
+		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
+	case ^ast.PrefixExpression:
+		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
+	}
+}
+@(private)
+fail_expected_statement :: proc(
+	t: ^testing.T,
+	field_name, expected_name: string,
+	value: ast.Statement,
+	loc := #caller_location,
+) {
+	switch stmt in value {
+	case ^ast.LetStatement:
+		fail_expected_type(t, field_name, expected_name, stmt, loc = loc)
+	case ^ast.ReturnStatement:
+		fail_expected_type(t, field_name, expected_name, stmt, loc = loc)
+	case ^ast.ExpressionStatement:
+		fail_expected_type(t, field_name, expected_name, stmt, loc = loc)
+	}
+}
+@(private)
+fail_expected_type :: proc(
+	t: ^testing.T,
+	field_name, expected_name: string,
+	value: any,
+	loc := #caller_location,
+) {
+	testing.expectf(t, false, "%s not ^%s. got=%T", field_name, expected_name, value, loc = loc)
 }

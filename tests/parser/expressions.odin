@@ -26,10 +26,21 @@ test_identifier_expression :: proc(t: ^testing.T) {
 		len(program.statements),
 	)
 
-	stmt := program.statements[0].(^ast.ExpressionStatement)
+	stmt, ok := program.statements[0].(^ast.ExpressionStatement)
 
-	ident := stmt.expression.(^ast.Identifier)
+	if !ok {
+		fail_expected_statement(
+			t,
+			"program.statements[0]",
+			"ast.ExpressionStatement",
+			program.statements[0],
+		)
+	}
 
+	ident, expr_ok := stmt.expression.(^ast.Identifier)
+	if !expr_ok {
+		fail_expected_expression(t, "stmt.expression", "ast.Identifier", stmt.expression)
+	}
 	testing.expectf(
 		t,
 		ident.value == "foobar",
@@ -71,19 +82,19 @@ test_integer_literal_expression :: proc(t: ^testing.T) {
 		len(program.statements),
 	)
 
-	stmt := program.statements[0].(^ast.ExpressionStatement)
+	stmt, ok := program.statements[0].(^ast.ExpressionStatement)
 
-	literal := stmt.expression.(^ast.IntegerLiteral)
+	if !ok {
+		fail_expected_statement(
+			t,
+			"program.statements[0]",
+			"ast.ExpressionStatement",
+			program.statements[0],
+		)
+	}
 
-	testing.expectf(t, literal.value == 5, "literal.value not %d. got=%d", 5, literal.value)
+	test_integer_literal(t, "stmt.expression", stmt.expression, 5)
 
-	testing.expectf(
-		t,
-		ast.token_literal(literal) == "5",
-		"token_literal(literal) not %s. got=%s",
-		"5",
-		ast.token_literal(literal),
-	)
 
 }
 @(test)
@@ -113,9 +124,20 @@ test_parsing_prefix_expressions :: proc(t: ^testing.T) {
 			len(program.statements),
 		)
 
-		stmt := program.statements[0].(^ast.ExpressionStatement)
+		stmt, ok := program.statements[0].(^ast.ExpressionStatement)
 
-		exp := stmt.expression.(^ast.PrefixExpression)
+		if !ok {
+			fail_expected_statement(
+				t,
+				"program.statements[0]",
+				"ast.ExpressionStatement",
+				program.statements[0],
+			)
+		}
+		exp, expr_ok := stmt.expression.(^ast.PrefixExpression)
+		if !expr_ok {
+			fail_expected_expression(t, "stmt.expression", "ast.PrefixExpression", stmt.expression)
+		}
 
 		testing.expectf(
 			t,
@@ -125,7 +147,7 @@ test_parsing_prefix_expressions :: proc(t: ^testing.T) {
 			exp.operator,
 		)
 
-		test_integer_literal(t, exp.right, tt.integer_value)
+		test_integer_literal(t, "exp.right", exp.right, tt.integer_value)
 
 	}
 }
@@ -168,11 +190,23 @@ test_parseing_infix_expressions :: proc(t: ^testing.T) {
 			len(program.statements),
 		)
 
-		stmt := program.statements[0].(^ast.ExpressionStatement)
+		stmt, ok := program.statements[0].(^ast.ExpressionStatement)
 
-		exp := stmt.expression.(^ast.InfixExpression)
+		if !ok {
+			fail_expected_statement(
+				t,
+				"program.statements[0]",
+				"ast.ExpressionStatement",
+				program.statements[0],
+			)
+		}
 
-		test_integer_literal(t, exp.left, tt.left_value)
+		exp, expr_ok := stmt.expression.(^ast.InfixExpression)
+
+		if !expr_ok {
+			fail_expected_expression(t, "stmt.expression", "ast.InfixExpression", stmt.expression)
+		}
+		test_integer_literal(t, "exp.right", exp.left, tt.left_value)
 
 		testing.expectf(
 			t,
@@ -181,7 +215,7 @@ test_parseing_infix_expressions :: proc(t: ^testing.T) {
 			tt.operator,
 			exp.operator,
 		)
-		test_integer_literal(t, exp.right, tt.right_value)
+		test_integer_literal(t, "exp.right", exp.right, tt.right_value)
 	}
 }
 @(test)

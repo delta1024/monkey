@@ -38,7 +38,7 @@ let foobar = 838383;
 
 	for tt, i in tests {
 		stmt := program.statements[i]
-		test_let_statement(t, stmt, tt.expected_identifier)
+		test_let_statement(t, "stmt", stmt, tt.expected_identifier)
 	}
 }
 @(test)
@@ -69,8 +69,10 @@ return 993322;
 	)
 
 	for stmt in program.statements {
-		return_stmt := stmt.(^ast.ReturnStatement)
-
+		return_stmt, ok := stmt.(^ast.ReturnStatement)
+		if !ok {
+			fail_expected_statement(t, "return_stmt", "ast.ReturnStatement", stmt)
+		}
 		testing.expectf(
 			t,
 			ast.token_literal(return_stmt) == "return",
