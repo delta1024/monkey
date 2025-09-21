@@ -23,6 +23,16 @@ parse_expression :: proc(using parser: ^Parser, precedence: Precedence) -> ast.E
 	}
 
 	left_exp := prefix(parser)
+	for !peek_token_is(parser, .Semicolon) && precedence < peek_precedence(parser) {
+		infix, ok := infix_parse_fns[peek_token.type]
+		if !ok {
+			return left_exp
+		}
+
+		next_token(parser)
+
+		left_exp = infix(parser, left_exp)
+	}
 	return left_exp
 }
 
@@ -53,5 +63,14 @@ parse_prefix_expression :: proc(using parser: ^Parser) -> ast.Expression {
 	next_token(parser)
 
 	expression.right = parse_expression(parser, .Prefix)
+	return expression
+}
+
+parse_infix_expression :: proc(using parser: ^Parser, left: ast.Expression) -> ast.Expression {
+	expression := ast.node_make(ast.InfixExpression, cur_token, left)
+
+	prec := cur_precedence(parser)
+	next_token(parser)
+	expression.right = parse_expression(parser, prec)
 	return expression
 }

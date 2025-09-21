@@ -8,6 +8,7 @@ Node :: struct {
 		^ReturnStatement,
 		^ExpressionStatement,
 		^PrefixExpression,
+		^InfixExpression,
 		^Identifier,
 		^IntegerLiteral,
 	},
@@ -41,12 +42,20 @@ ExpressionStatement :: struct {
 
 Expression :: union {
 	^PrefixExpression,
+	^InfixExpression,
 	^Identifier,
 	^IntegerLiteral,
 }
 
 PrefixExpression :: struct {
 	using node: Node,
+	operator:   string,
+	right:      Expression,
+}
+
+InfixExpression :: struct {
+	using node: Node,
+	left:       Expression,
 	operator:   string,
 	right:      Expression,
 }

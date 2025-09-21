@@ -69,6 +69,8 @@ expression_node_string :: proc(expr: Expression) -> (out: string) {
 	switch node in expr {
 	case ^PrefixExpression:
 		out = node_string(node)
+	case ^InfixExpression:
+		out = node_string(node)
 	case ^Identifier:
 		out = node_string(node)
 	case ^IntegerLiteral:
@@ -94,6 +96,20 @@ prefix_expression_node_string :: proc(using prefix_node: ^PrefixExpression) -> s
 
 	return strings.to_string(out)
 }
+
+infix_expression_node_string :: proc(using infix_expr: ^InfixExpression) -> string {
+	out := strings.builder_make()
+
+	left_str := node_string(left)
+	defer delete(left_str)
+	right_str := node_string(right)
+	defer delete(right_str)
+
+	fmt.sbprintf(&out, "(%s %s %s)", left_str, operator, right_str)
+
+	return strings.to_string(out)
+}
+
 identifier_node_string :: proc(using ident_expr: ^Identifier) -> string {
 	return strings.clone(value)
 }
@@ -110,6 +126,7 @@ node_string :: proc {
 	expression_statement_node_string,
 	expression_node_string,
 	prefix_expression_node_string,
+	infix_expression_node_string,
 	identifier_node_string,
 	integer_literal_node_string,
 }
