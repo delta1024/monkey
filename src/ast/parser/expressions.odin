@@ -78,3 +78,16 @@ parse_infix_expression :: proc(using parser: ^Parser, left: ast.Expression) -> a
 parse_boolean_expression :: proc(using parser: ^Parser) -> ast.Expression {
 	return ast.node_make(ast.Boolean, cur_token, cur_token_is(parser, .True))
 }
+
+parse_grouped_expression :: proc(using parser: ^Parser) -> ast.Expression {
+	next_token(parser)
+
+	exp := parse_expression(parser, .Lowest)
+
+	if !expect_peek(parser, .RParen) {
+		ast.node_delete(exp)
+		return nil
+	}
+
+	return exp
+}
