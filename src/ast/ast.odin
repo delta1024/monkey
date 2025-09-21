@@ -6,9 +6,11 @@ Node :: struct {
 	base_node: union {
 		^LetStatement,
 		^ReturnStatement,
+		^BlockStatement,
 		^ExpressionStatement,
 		^PrefixExpression,
 		^InfixExpression,
+		^IfExpression,
 		^Identifier,
 		^IntegerLiteral,
 		^Boolean,
@@ -22,6 +24,7 @@ Program :: struct {
 Statement :: union {
 	^LetStatement,
 	^ReturnStatement,
+	^BlockStatement,
 	^ExpressionStatement,
 }
 
@@ -36,6 +39,11 @@ ReturnStatement :: struct {
 	return_value: Expression,
 }
 
+BlockStatement :: struct {
+	using node: Node,
+	statements: [dynamic]Statement,
+}
+
 ExpressionStatement :: struct {
 	using node: Node,
 	expression: Expression,
@@ -44,6 +52,7 @@ ExpressionStatement :: struct {
 Expression :: union {
 	^PrefixExpression,
 	^InfixExpression,
+	^IfExpression,
 	^Identifier,
 	^IntegerLiteral,
 	^Boolean,
@@ -60,6 +69,13 @@ InfixExpression :: struct {
 	left:       Expression,
 	operator:   string,
 	right:      Expression,
+}
+
+IfExpression :: struct {
+	using node:  Node,
+	condition:   Expression,
+	consequence: ^BlockStatement,
+	alternative: ^BlockStatement "optional value",
 }
 
 Identifier :: struct {

@@ -60,3 +60,21 @@ parse_expression_statement :: proc(using parser: ^Parser) -> ^ast.ExpressionStat
 	}
 	return stmt
 }
+
+parse_block_statement :: proc(using parser: ^Parser) -> ^ast.BlockStatement {
+	block := ast.node_make(ast.BlockStatement, cur_token)
+
+	next_token(parser)
+
+	for !cur_token_is(parser, .RBrace) && !cur_token_is(parser, .Eof) {
+		stmt := parse_statement(parser)
+
+		if stmt != nil {
+			append(&block.statements, stmt)
+		}
+
+		next_token(parser)
+	}
+
+	return block
+}

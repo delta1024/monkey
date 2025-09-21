@@ -36,6 +36,20 @@ return_node_make :: proc(
 	return node
 }
 
+block_statement_node_make :: proc(
+	$T: typeid/BlockStatement,
+	token: tokenizer.Token,
+	statements: [dynamic]Statement = nil,
+) -> ^T {
+	node := base_node_make(T, token)
+	if statements == nil {
+		node.statements = make([dynamic]Statement)
+	} else {
+		node.statements = statements
+	}
+	return node
+}
+
 expression_statement_node_make :: proc(
 	$T: typeid/ExpressionStatement,
 	token: tokenizer.Token,
@@ -70,6 +84,20 @@ infix_expression_node_make :: proc(
 	return node
 }
 
+if_expression_node_make :: proc(
+	$T: typeid/IfExpression,
+	token: tokenizer.Token,
+	condition: Expression = nil,
+	consequence: ^BlockStatement = nil,
+	alternative: ^BlockStatement = nil,
+) -> ^T {
+	node := base_node_make(T, token)
+	node.condition = condition
+	node.consequence = consequence
+	node.alternative = alternative
+	return node
+}
+
 identifier_node_make :: proc($T: typeid/Identifier, token: tokenizer.Token) -> ^T {
 	node := base_node_make(T, token)
 	node.value = token.literal
@@ -95,9 +123,11 @@ node_make :: proc {
 	program_node_make,
 	let_node_make,
 	return_node_make,
+	block_statement_node_make,
 	expression_statement_node_make,
 	prefix_expression_node_make,
 	infix_expression_node_make,
+	if_expression_node_make,
 	identifier_node_make,
 	integer_literal_node_make,
 	boolean_node_make,
@@ -117,6 +147,8 @@ statement_node_delete :: proc(stmt: Statement) {
 		node_delete(node)
 	case ^ReturnStatement:
 		node_delete(node)
+	case ^BlockStatement:
+		node_delete(node)
 	case ^ExpressionStatement:
 		node_delete(node)
 	}
@@ -124,7 +156,9 @@ statement_node_delete :: proc(stmt: Statement) {
 
 let_node_delete :: proc(node: ^LetStatement) {
 	node_delete(node.name)
-	node_delete(node.value)
+	if node.value != nil {
+		node_delete(node.value)
+	}
 	free(node)
 }
 
@@ -133,15 +167,26 @@ return_node_delete :: proc(node: ^ReturnStatement) {
 	free(node)
 }
 
+block_statement_node_delete :: proc(node: ^BlockStatement) {
+	for stmt in node.statements {
+		node_delete(stmt)
+	}
+	delete(node.statements)
+	free(node)
+}
+
 expression_statement_node_delete :: proc(node: ^ExpressionStatement) {
 	node_delete(node.expression)
 	free(node)
 }
+
 expression_node_delete :: proc(expr: Expression) {
 	switch node in expr {
 	case ^PrefixExpression:
 		node_delete(node)
 	case ^InfixExpression:
+		node_delete(node)
+	case ^IfExpression:
 		node_delete(node)
 	case ^Identifier:
 		node_delete(node)
@@ -161,6 +206,14 @@ infix_expression_node_delete :: proc(using infix_node: ^InfixExpression) {
 	node_delete(right)
 	free(infix_node)
 }
+if_expression_node_delete :: proc(using if_node: ^IfExpression) {
+	node_delete(condition)
+	node_delete(consequence)
+	if alternative != nil {
+		node_delete(alternative)
+	}
+	free(if_node)
+}
 identifier_node_delete :: proc(node: ^Identifier) {
 	free(node)
 }
@@ -177,10 +230,12 @@ node_delete :: proc {
 	statement_node_delete,
 	let_node_delete,
 	return_node_delete,
+	block_statement_node_delete,
 	expression_statement_node_delete,
 	expression_node_delete,
 	prefix_expression_node_delete,
 	infix_expression_node_delete,
+	if_expression_node_delete,
 	identifier_node_delete,
 	integer_literal_node_delete,
 	boolean_node_delete,

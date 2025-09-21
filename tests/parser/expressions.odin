@@ -295,3 +295,137 @@ test_operator_precedence_parsing :: proc(t: ^testing.T) {
 		testing.expectf(t, actual == tt.expected, "expected=%s, got=%s", tt.expected, actual)
 	}
 }
+@(test)
+test_if_expression :: proc(t: ^testing.T) {
+	input :: "if (x < y) { x }"
+
+	lexer: tokenizer.Tokenizer
+	tokenizer.tokenizer_init(&lexer, input)
+
+	using parser
+	parser := parser_create(lexer)
+	defer parser_destroy(parser)
+
+	program := parse_program(&parser)
+	defer ast.node_delete(program)
+	check_parser_error(t, &parser)
+
+	testing.expectf(
+		t,
+		len(program.statements) == 1,
+		"program.statements does not contain %d statements. got=%d",
+		1,
+		len(program.statements),
+	)
+
+	stmt, ok := program.statements[0].(^ast.ExpressionStatement)
+	if !ok {
+		fail_expected_statement(
+			t,
+			"program.statements[0]",
+			"ast.ExpressionStatement",
+			program.statements[0],
+		)
+	}
+
+	exp, exp_ok := stmt.expression.(^ast.IfExpression)
+	if !exp_ok {
+		fail_expected_expression(t, "stmt.expression", "ast.IfExpression", stmt.expression)
+	}
+
+	test_infix_expression(t, "exp.condition", exp.condition, "x", "<", "y")
+
+	testing.expectf(
+		t,
+		len(exp.consequence.statements) == 1,
+		"consequence is not 1 statements. got=%d\n",
+		len(exp.consequence.statements),
+	)
+
+	consequence, conseq_ok := exp.consequence.statements[0].(^ast.ExpressionStatement)
+	if !conseq_ok {
+		fail_expected_statement(
+			t,
+			"exp.consequence.statements[0]",
+			"ast.ExpressionStatement",
+			exp.consequence.statements[0],
+		)
+	}
+
+	test_identifier(t, "consequence.expression", consequence.expression, "x")
+
+	testing.expect_value(t, exp.alternative, nil)
+}
+@(test)
+test_if_else_expression :: proc(t: ^testing.T) {
+	input :: "if (x < y) { x } else { y }"
+
+	lexer: tokenizer.Tokenizer
+	tokenizer.tokenizer_init(&lexer, input)
+
+	using parser
+	parser := parser_create(lexer)
+	defer parser_destroy(parser)
+
+	program := parse_program(&parser)
+	defer ast.node_delete(program)
+	check_parser_error(t, &parser)
+
+	testing.expectf(
+		t,
+		len(program.statements) == 1,
+		"program.statements does not contain %d statements. got=%d",
+		1,
+		len(program.statements),
+	)
+
+	stmt, ok := program.statements[0].(^ast.ExpressionStatement)
+	if !ok {
+		fail_expected_statement(
+			t,
+			"program.statements[0]",
+			"ast.ExpressionStatement",
+			program.statements[0],
+		)
+	}
+
+	exp, exp_ok := stmt.expression.(^ast.IfExpression)
+	if !exp_ok {
+		fail_expected_expression(t, "stmt.expression", "ast.IfExpression", stmt.expression)
+	}
+
+	test_infix_expression(t, "exp.condition", exp.condition, "x", "<", "y")
+
+	testing.expectf(
+		t,
+		len(exp.consequence.statements) == 1,
+		"consequence is not 1 statements. got=%d\n",
+		len(exp.consequence.statements),
+	)
+
+	consequence, conseq_ok := exp.consequence.statements[0].(^ast.ExpressionStatement)
+	if !conseq_ok {
+		fail_expected_statement(
+			t,
+			"exp.consequence.statements[0]",
+			"ast.ExpressionStatement",
+			exp.consequence.statements[0],
+		)
+	}
+
+	test_identifier(t, "consequence.expression", consequence.expression, "x")
+
+
+	alternative, alt_ok := exp.alternative.statements[0].(^ast.ExpressionStatement)
+	if !alt_ok {
+		fail_expected_statement(
+			t,
+			"exp.alternative.statements[0]",
+			"ast.ExpressionStatement",
+			exp.alternative.statements[0],
+		)
+	}
+
+	test_identifier(t, "alternative.expression", alternative.expression, "y")
+
+}

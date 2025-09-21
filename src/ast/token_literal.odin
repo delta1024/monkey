@@ -19,6 +19,8 @@ statement_token_literal :: proc(stmt: Statement) -> string {
 		node = n
 	case ^ReturnStatement:
 		node = n
+	case ^BlockStatement:
+		node = n
 	case ^ExpressionStatement:
 		node = n
 	}
@@ -31,6 +33,8 @@ expression_token_literal :: proc(expr: Expression) -> string {
 	case ^PrefixExpression:
 		node = n
 	case ^InfixExpression:
+		node = n
+	case ^IfExpression:
 		node = n
 	case ^Identifier:
 		node = n

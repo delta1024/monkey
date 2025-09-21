@@ -21,12 +21,25 @@ statement_node_string :: proc(stmt: Statement) -> (out: string) {
 		out = node_string(node)
 	case ^ReturnStatement:
 		out = node_string(node)
+	case ^BlockStatement:
+		out = node_string(node)
 	case ^ExpressionStatement:
 		out = node_string(node)
 	case:
 		out = string(make_slice([]byte, 1))
 	}
 	return
+}
+
+block_statement_node_string :: proc(using block_node: ^BlockStatement) -> string {
+	out := strings.builder_make()
+
+	for s in statements {
+		stmt_str := node_string(s)
+		defer delete(stmt_str)
+		strings.write_string(&out, stmt_str)
+	}
+	return strings.to_string(out)
 }
 
 let_node_string :: proc(using let_stmt: ^LetStatement) -> string {
@@ -71,6 +84,8 @@ expression_node_string :: proc(expr: Expression) -> (out: string) {
 		out = node_string(node)
 	case ^InfixExpression:
 		out = node_string(node)
+	case ^IfExpression:
+		out = node_string(node)
 	case ^Identifier:
 		out = node_string(node)
 	case ^IntegerLiteral:
@@ -112,6 +127,24 @@ infix_expression_node_string :: proc(using infix_expr: ^InfixExpression) -> stri
 	return strings.to_string(out)
 }
 
+if_expression_node_string :: proc(using if_node: ^IfExpression) -> string {
+	out := strings.builder_make()
+
+	cond_str := node_string(condition)
+	defer delete(cond_str)
+	conseq_str := node_string(consequence)
+	defer delete(conseq_str)
+
+	fmt.sbprintf(&out, "if%s %s", cond_str, conseq_str)
+
+	if alternative != nil {
+		alt_str := node_string(alternative)
+		defer delete(alt_str)
+		fmt.sbprintf(&out, "else %s", alt_str)
+	}
+	return strings.to_string(out)
+}
+
 identifier_node_string :: proc(using ident_expr: ^Identifier) -> string {
 	return strings.clone(value)
 }
@@ -123,14 +156,18 @@ integer_literal_node_string :: proc(using integer_expr: ^IntegerLiteral) -> stri
 boolean_node_string :: proc(using bool_node: ^Boolean) -> string {
 	return strings.clone(node.token.literal)
 }
+
+
 node_string :: proc {
 	program_node_string,
 	statement_node_string,
+	block_statement_node_string,
 	let_node_string,
 	return_node_string,
 	expression_statement_node_string,
 	expression_node_string,
 	prefix_expression_node_string,
+	if_expression_node_string,
 	infix_expression_node_string,
 	identifier_node_string,
 	integer_literal_node_string,

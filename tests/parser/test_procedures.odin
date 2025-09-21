@@ -222,6 +222,8 @@ fail_expected_expression :: proc(
 		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
 	case ^ast.Boolean:
 		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
+	case ^ast.IfExpression:
+		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
 	}
 }
 @(private)
@@ -235,6 +237,8 @@ fail_expected_statement :: proc(
 	case ^ast.LetStatement:
 		fail_expected_type(t, field_name, expected_name, stmt, loc = loc)
 	case ^ast.ReturnStatement:
+		fail_expected_type(t, field_name, expected_name, stmt, loc = loc)
+	case ^ast.BlockStatement:
 		fail_expected_type(t, field_name, expected_name, stmt, loc = loc)
 	case ^ast.ExpressionStatement:
 		fail_expected_type(t, field_name, expected_name, stmt, loc = loc)

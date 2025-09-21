@@ -91,3 +91,45 @@ parse_grouped_expression :: proc(using parser: ^Parser) -> ast.Expression {
 
 	return exp
 }
+
+parse_if_expression :: proc(using parser: ^Parser) -> (node: ast.Expression) {
+	expression := ast.node_make(ast.IfExpression, cur_token)
+	defer if node == nil {
+		free(expression)
+	}
+
+	if !expect_peek(parser, .LParen) {
+		return
+	}
+
+	next_token(parser)
+
+	expression.condition = parse_expression(parser, .Lowest)
+	defer if node == nil {
+		ast.node_delete(expression.condition)
+	}
+
+	if !expect_peek(parser, .RParen) {
+		return nil
+	}
+
+	if !expect_peek(parser, .LBrace) {
+		return nil
+	}
+
+	expression.consequence = parse_block_statement(parser)
+	defer if node == nil {
+		ast.node_delete(expression.consequence)
+	}
+
+	if peek_token_is(parser, .Else) {
+		next_token(parser)
+
+		if !expect_peek(parser, .LBrace) {
+			return
+		}
+
+		expression.alternative = parse_block_statement(parser)
+	}
+	return expression
+}
