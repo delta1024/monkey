@@ -86,3 +86,46 @@ test_integer_literal_expression :: proc(t: ^testing.T) {
 	)
 
 }
+@(test)
+test_parsing_prefix_expressions :: proc(t: ^testing.T) {
+	prefix_tests := []struct {
+		input, operator: string,
+		integer_value:   i64,
+	}{{"!5;", "!", 5}, {"-15;", "-", 15}}
+
+	for tt in prefix_tests {
+		using parser
+		lexer: tokenizer.Tokenizer
+		tokenizer.tokenizer_init(&lexer, tt.input)
+
+		parser := parser_create(lexer)
+		defer parser_destroy(parser)
+
+		program := parse_program(&parser)
+		defer ast.node_delete(program)
+		check_parser_error(t, &parser)
+
+		testing.expectf(
+			t,
+			len(program.statements) == 1,
+			"program.statements does not contian %d statements. got=%d\n",
+			1,
+			len(program.statements),
+		)
+
+		stmt := program.statements[0].(^ast.ExpressionStatement)
+
+		exp := stmt.expression.(^ast.PrefixExpression)
+
+		testing.expectf(
+			t,
+			exp.operator == tt.operator,
+			"exp.operator is not %s. got=%s",
+			tt.operator,
+			exp.operator,
+		)
+
+		test_integer_literal(t, exp.right, tt.integer_value)
+
+	}
+}

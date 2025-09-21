@@ -28,6 +28,8 @@ statement_token_literal :: proc(stmt: Statement) -> string {
 expression_token_literal :: proc(expr: Expression) -> string {
 	node: ^Node
 	switch n in expr {
+	case ^PrefixExpression:
+		node = n
 	case ^Identifier:
 		node = n
 	case ^IntegerLiteral:

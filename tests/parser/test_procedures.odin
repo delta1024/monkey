@@ -46,3 +46,36 @@ check_parser_error :: proc(t: ^testing.T, using parser: ^parser.Parser, loc := #
 
 	testing.fail_now(t, strings.to_string(builder), loc = loc)
 }
+
+@(private)
+test_integer_literal :: proc(
+	t: ^testing.T,
+	int_lit: ast.Expression,
+	value: i64,
+	loc := #caller_location,
+) {
+	integer := int_lit.(^ast.IntegerLiteral)
+
+	testing.expectf(
+		t,
+		integer.value == value,
+		"integer.vaule not %d. got=%d",
+		value,
+		integer.value,
+		loc = loc,
+	)
+
+	buf: [256]byte
+
+	num_str := fmt.bprintf(buf[:], "%d", value)
+
+	testing.expectf(
+		t,
+		ast.token_literal(integer) == num_str,
+		"token_literal(integer) not %d. got=%s",
+		value,
+		ast.token_literal(integer),
+	)
+
+
+}

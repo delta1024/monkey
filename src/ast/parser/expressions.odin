@@ -18,6 +18,7 @@ parse_expression :: proc(using parser: ^Parser, precedence: Precedence) -> ast.E
 	prefix, ok := prefix_parse_fns[cur_token.type]
 
 	if !ok {
+		no_prefix_parse_fn(parser, cur_token.type)
 		return nil
 	}
 
@@ -44,4 +45,13 @@ parse_integer_literal :: proc(using parser: ^Parser) -> ast.Expression {
 	lit.value = value
 
 	return lit
+}
+
+parse_prefix_expression :: proc(using parser: ^Parser) -> ast.Expression {
+	expression := ast.node_make(ast.PrefixExpression, cur_token)
+
+	next_token(parser)
+
+	expression.right = parse_expression(parser, .Prefix)
+	return expression
 }

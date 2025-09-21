@@ -7,6 +7,7 @@ Node :: struct {
 		^LetStatement,
 		^ReturnStatement,
 		^ExpressionStatement,
+		^PrefixExpression,
 		^Identifier,
 		^IntegerLiteral,
 	},
@@ -39,8 +40,15 @@ ExpressionStatement :: struct {
 }
 
 Expression :: union {
+	^PrefixExpression,
 	^Identifier,
 	^IntegerLiteral,
+}
+
+PrefixExpression :: struct {
+	using node: Node,
+	operator:   string,
+	right:      Expression,
 }
 
 Identifier :: struct {

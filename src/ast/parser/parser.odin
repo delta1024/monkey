@@ -22,6 +22,8 @@ parser_create :: proc(lexer: tokenizer.Tokenizer) -> Parser {
 		prefix_parse_fns = map[tokenizer.TokenType]Prefix_Parse_Fn {
 			.Ident = parse_identifier,
 			.Int = parse_integer_literal,
+			.Bang = parse_prefix_expression,
+			.Minus = parse_prefix_expression,
 		},
 		infix_parse_fns = make(map[tokenizer.TokenType]Infix_Parse_Fn),
 	}
@@ -88,5 +90,11 @@ peek_error :: proc(using parser: ^Parser, t: tokenizer.TokenType) {
 		tokenizer.token_names[t],
 		tokenizer.token_names[peek_token.type],
 	)
+	append(&errors, msg)
+}
+
+@(private)
+no_prefix_parse_fn :: proc(using parser: ^Parser, token: tokenizer.TokenType) {
+	msg := fmt.aprintfln("no prefix function for %s found", tokenizer.token_names[token])
 	append(&errors, msg)
 }
