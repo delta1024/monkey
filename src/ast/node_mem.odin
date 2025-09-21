@@ -52,12 +52,23 @@ identifier_node_make :: proc($T: typeid/Identifier, token: tokenizer.Token) -> ^
 	return node
 }
 
+integer_literal_node_make :: proc(
+	$T: typeid/IntegerLiteral,
+	token: tokenizer.Token,
+	value: i64 = 0,
+) -> ^T {
+	node := base_node_make(T, token)
+	node.value = value
+	return node
+}
+
 node_make :: proc {
 	program_node_make,
 	let_node_make,
 	return_node_make,
 	expression_statement_node_make,
 	identifier_node_make,
+	integer_literal_node_make,
 }
 
 program_node_delete :: proc(program: ^Program) {
@@ -98,10 +109,16 @@ expression_node_delete :: proc(expr: Expression) {
 	switch node in expr {
 	case ^Identifier:
 		node_delete(node)
+	case ^IntegerLiteral:
+		node_delete(node)
 	}
 }
 
 identifier_node_delete :: proc(node: ^Identifier) {
+	free(node)
+}
+
+integer_literal_node_delete :: proc(node: ^IntegerLiteral) {
 	free(node)
 }
 
@@ -113,4 +130,5 @@ node_delete :: proc {
 	expression_statement_node_delete,
 	expression_node_delete,
 	identifier_node_delete,
+	integer_literal_node_delete,
 }

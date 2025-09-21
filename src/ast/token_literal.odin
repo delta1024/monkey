@@ -30,6 +30,8 @@ expression_token_literal :: proc(expr: Expression) -> string {
 	switch n in expr {
 	case ^Identifier:
 		node = n
+	case ^IntegerLiteral:
+		node = n
 	}
 	return token_literal(node)
 }

@@ -69,6 +69,8 @@ expression_node_string :: proc(expr: Expression) -> (out: string) {
 	switch node in expr {
 	case ^Identifier:
 		out = node_string(node)
+	case ^IntegerLiteral:
+		out = node_string(node)
 	case:
 		out = string(make_slice([]byte, 1))
 	}
@@ -79,6 +81,10 @@ identifier_node_string :: proc(using ident_expr: ^Identifier) -> string {
 	return strings.clone(value)
 }
 
+integer_literal_node_string :: proc(using integer_expr: ^IntegerLiteral) -> string {
+	return strings.clone(node.token.literal)
+}
+
 node_string :: proc {
 	program_node_string,
 	statement_node_string,
@@ -87,4 +93,5 @@ node_string :: proc {
 	expression_statement_node_string,
 	expression_node_string,
 	identifier_node_string,
+	integer_literal_node_string,
 }

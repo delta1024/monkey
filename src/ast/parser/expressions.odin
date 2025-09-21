@@ -2,6 +2,8 @@
 package parser
 
 import "../../ast"
+import "core:fmt"
+import "core:strconv"
 Precedence :: enum int {
 	Lowest       = 0,
 	Equals       = 1,
@@ -25,4 +27,21 @@ parse_expression :: proc(using parser: ^Parser, precedence: Precedence) -> ast.E
 
 parse_identifier :: proc(using parser: ^Parser) -> ast.Expression {
 	return ast.node_make(ast.Identifier, cur_token)
+}
+
+parse_integer_literal :: proc(using parser: ^Parser) -> ast.Expression {
+	lit := ast.node_make(ast.IntegerLiteral, cur_token)
+
+	value, ok := strconv.parse_i64(cur_token.literal)
+
+	if !ok {
+		ast.node_delete(lit)
+		msg := fmt.aprintfln("could not parse %s as integer", cur_token.literal)
+		append(&errors, msg)
+		return nil
+	}
+
+	lit.value = value
+
+	return lit
 }
