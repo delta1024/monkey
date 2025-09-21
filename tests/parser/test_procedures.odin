@@ -89,9 +89,60 @@ test_integer_literal :: proc(
 }
 
 @(private)
-test_literal_expression :: proc {
-	test_integer_literal,
-	test_identifier,
+LiteralVaule :: union {
+	string,
+	bool,
+	i64,
+}
+@(private)
+test_literal_expression :: proc(
+	t: ^testing.T,
+	var_name: string,
+	lit: ast.Expression,
+	value: LiteralVaule,
+	loc := #caller_location,
+) {
+	switch v in value {
+	case i64:
+		test_integer_literal(t, var_name, lit, v, loc = loc)
+	case string:
+		test_identifier(t, var_name, lit, v, loc = loc)
+	case bool:
+		test_boolean_literal(t, var_name, lit, v, loc = loc)
+	}
+}
+test_boolean_literal :: proc(
+	t: ^testing.T,
+	var_name: string,
+	bool_lit: ast.Expression,
+	value: bool,
+	loc := #caller_location,
+) {
+	boolean, ok := bool_lit.(^ast.Boolean)
+	if !ok {
+		fail_expected_expression(t, var_name, "ast.Boolean", bool_lit, loc = loc)
+	}
+
+	testing.expectf(
+		t,
+		boolean.value == value,
+		"boolean.vaule not %d. got=%d",
+		value,
+		boolean.value,
+		loc = loc,
+	)
+
+	buf: [256]byte
+
+	num_str := fmt.bprintf(buf[:], "%v", value)
+
+	testing.expectf(
+		t,
+		ast.token_literal(boolean) == num_str,
+		"token_literal(integer) not %d. got=%s",
+		value,
+		ast.token_literal(boolean),
+	)
 }
 @(private)
 test_infix_expression :: proc(
@@ -168,6 +219,8 @@ fail_expected_expression :: proc(
 	case ^ast.InfixExpression:
 		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
 	case ^ast.PrefixExpression:
+		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
+	case ^ast.Boolean:
 		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
 	}
 }

@@ -86,6 +86,11 @@ integer_literal_node_make :: proc(
 	return node
 }
 
+boolean_node_make :: proc($T: typeid/Boolean, token: tokenizer.Token, value: bool) -> ^T {
+	node := base_node_make(T, token)
+	node.value = value
+	return node
+}
 node_make :: proc {
 	program_node_make,
 	let_node_make,
@@ -95,6 +100,7 @@ node_make :: proc {
 	infix_expression_node_make,
 	identifier_node_make,
 	integer_literal_node_make,
+	boolean_node_make,
 }
 
 program_node_delete :: proc(program: ^Program) {
@@ -141,6 +147,8 @@ expression_node_delete :: proc(expr: Expression) {
 		node_delete(node)
 	case ^IntegerLiteral:
 		node_delete(node)
+	case ^Boolean:
+		node_delete(node)
 	}
 }
 
@@ -161,6 +169,9 @@ integer_literal_node_delete :: proc(node: ^IntegerLiteral) {
 	free(node)
 }
 
+boolean_node_delete :: proc(node: ^Boolean) {
+	free(node)
+}
 node_delete :: proc {
 	program_node_delete,
 	statement_node_delete,
@@ -172,4 +183,5 @@ node_delete :: proc {
 	infix_expression_node_delete,
 	identifier_node_delete,
 	integer_literal_node_delete,
+	boolean_node_delete,
 }

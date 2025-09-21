@@ -11,6 +11,7 @@ Node :: struct {
 		^InfixExpression,
 		^Identifier,
 		^IntegerLiteral,
+		^Boolean,
 	},
 }
 
@@ -45,6 +46,7 @@ Expression :: union {
 	^InfixExpression,
 	^Identifier,
 	^IntegerLiteral,
+	^Boolean,
 }
 
 PrefixExpression :: struct {
@@ -68,4 +70,9 @@ Identifier :: struct {
 IntegerLiteral :: struct {
 	using node: Node,
 	value:      i64,
+}
+
+Boolean :: struct {
+	using node: Node,
+	value:      bool,
 }

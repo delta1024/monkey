@@ -75,6 +75,8 @@ expression_node_string :: proc(expr: Expression) -> (out: string) {
 		out = node_string(node)
 	case ^IntegerLiteral:
 		out = node_string(node)
+	case ^Boolean:
+		out = node_string(node)
 	case:
 		out = string(make_slice([]byte, 1))
 	}
@@ -118,6 +120,9 @@ integer_literal_node_string :: proc(using integer_expr: ^IntegerLiteral) -> stri
 	return strings.clone(node.token.literal)
 }
 
+boolean_node_string :: proc(using bool_node: ^Boolean) -> string {
+	return strings.clone(node.token.literal)
+}
 node_string :: proc {
 	program_node_string,
 	statement_node_string,
@@ -129,4 +134,5 @@ node_string :: proc {
 	infix_expression_node_string,
 	identifier_node_string,
 	integer_literal_node_string,
+	boolean_node_string,
 }

@@ -25,6 +25,8 @@ parser_create :: proc(lexer: tokenizer.Tokenizer) -> Parser {
 			.Int = parse_integer_literal,
 			.Bang = parse_prefix_expression,
 			.Minus = parse_prefix_expression,
+			.True = parse_boolean_expression,
+			.False = parse_boolean_expression,
 		},
 		infix_parse_fns = map[tokenizer.TokenType]Infix_Parse_Fn {
 			.Plus = parse_infix_expression,

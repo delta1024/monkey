@@ -74,3 +74,7 @@ parse_infix_expression :: proc(using parser: ^Parser, left: ast.Expression) -> a
 	expression.right = parse_expression(parser, prec)
 	return expression
 }
+
+parse_boolean_expression :: proc(using parser: ^Parser) -> ast.Expression {
+	return ast.node_make(ast.Boolean, cur_token, cur_token_is(parser, .True))
+}

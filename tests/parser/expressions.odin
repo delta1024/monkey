@@ -98,11 +98,46 @@ test_integer_literal_expression :: proc(t: ^testing.T) {
 
 }
 @(test)
+test_boolean_expression :: proc(t: ^testing.T) {
+	using parser
+	input :: "true;"
+
+	lexer: tokenizer.Tokenizer
+	tokenizer.tokenizer_init(&lexer, input)
+
+	parser := parser_create(lexer)
+	defer parser_destroy(parser)
+
+	program := parse_program(&parser)
+	defer ast.node_delete(program)
+
+	check_parser_error(t, &parser)
+
+	testing.expectf(
+		t,
+		len(program.statements) == 1,
+		"program has not enough statements. got=%d",
+		len(program.statements),
+	)
+
+	stmt, ok := program.statements[0].(^ast.ExpressionStatement)
+
+	if !ok {
+		fail_expected_statement(
+			t,
+			"program.statements[0]",
+			"ast.ExpressionStatement",
+			program.statements[0],
+		)
+	}
+	test_literal_expression(t, "stmt.expression", stmt.expression, true)
+}
+@(test)
 test_parsing_prefix_expressions :: proc(t: ^testing.T) {
 	prefix_tests := []struct {
 		input, operator: string,
-		integer_value:   i64,
-	}{{"!5;", "!", 5}, {"-15;", "-", 15}}
+		value:           LiteralVaule,
+	}{{"!5;", "!", 5}, {"-15;", "-", 15}, {"!true;", "!", true}, {"!false;", "!", false}}
 
 	for tt in prefix_tests {
 		using parser
@@ -147,7 +182,7 @@ test_parsing_prefix_expressions :: proc(t: ^testing.T) {
 			exp.operator,
 		)
 
-		test_integer_literal(t, "exp.right", exp.right, tt.integer_value)
+		test_literal_expression(t, "exp.right", exp.right, tt.value)
 
 	}
 }
@@ -155,9 +190,9 @@ test_parsing_prefix_expressions :: proc(t: ^testing.T) {
 test_parseing_infix_expressions :: proc(t: ^testing.T) {
 	infix_tests := []struct {
 		input:       string,
-		left_value:  i64,
+		left_value:  LiteralVaule,
 		operator:    string,
-		right_value: i64,
+		right_value: LiteralVaule,
 	} {
 		{"5 + 5;", 5, "+", 5},
 		{"5 - 5;", 5, "-", 5},
@@ -167,6 +202,9 @@ test_parseing_infix_expressions :: proc(t: ^testing.T) {
 		{"5 < 5;", 5, "<", 5},
 		{"5 == 5;", 5, "==", 5},
 		{"5 != 5;", 5, "!=", 5},
+		{"true == true", true, "==", true},
+		{"true != false", true, "!=", false},
+		{"false == false", false, "==", false},
 	}
 
 	for tt in infix_tests {
@@ -201,21 +239,14 @@ test_parseing_infix_expressions :: proc(t: ^testing.T) {
 			)
 		}
 
-		exp, expr_ok := stmt.expression.(^ast.InfixExpression)
-
-		if !expr_ok {
-			fail_expected_expression(t, "stmt.expression", "ast.InfixExpression", stmt.expression)
-		}
-		test_integer_literal(t, "exp.right", exp.left, tt.left_value)
-
-		testing.expectf(
+		test_infix_expression(
 			t,
-			exp.operator == tt.operator,
-			"exp.operator is not '%s'. got=%s",
+			"stmt.expression",
+			stmt.expression,
+			tt.left_value,
 			tt.operator,
-			exp.operator,
+			tt.right_value,
 		)
-		test_integer_literal(t, "exp.right", exp.right, tt.right_value)
 	}
 }
 @(test)
@@ -235,6 +266,10 @@ test_operator_precedence_parsing :: proc(t: ^testing.T) {
 		{"5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"},
 		{"5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"},
 		{"3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+		{"true", "true"},
+		{"false", "false"},
+		{"3 > 5 == false", "((3 > 5) == false)"},
+		{"3 < 5 == true", "((3 < 5) == true)"},
 	}
 
 	for tt in tests {

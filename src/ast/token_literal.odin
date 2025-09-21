@@ -36,6 +36,8 @@ expression_token_literal :: proc(expr: Expression) -> string {
 		node = n
 	case ^IntegerLiteral:
 		node = n
+	case ^Boolean:
+		node = n
 	}
 	return token_literal(node)
 }
