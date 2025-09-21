@@ -17,6 +17,8 @@ statement_token_literal :: proc(stmt: Statement) -> string {
 	switch n in stmt {
 	case ^LetStatement:
 		node = n
+	case ^ReturnStatement:
+		node = n
 	}
 	return token_literal(node)
 }

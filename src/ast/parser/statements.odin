@@ -6,6 +6,8 @@ parse_statement :: proc(using parser: ^Parser) -> (stmt: ast.Statement) {
 	#partial switch cur_token.type {
 	case .Let:
 		stmt = parse_let_statement(parser)
+	case .Return:
+		stmt = parse_return_statement(parser)
 	}
 	return
 }
@@ -31,5 +33,18 @@ parse_let_statement :: proc(using parser: ^Parser) -> ^ast.LetStatement {
 		next_token(parser)
 	}
 
+	return stmt
+}
+
+parse_return_statement :: proc(using parser: ^Parser) -> ^ast.ReturnStatement {
+	using ast
+	stmt := node_make(ReturnStatement, cur_token)
+	next_token(parser)
+
+	// TODO: We're skipping the expressions until we
+	// encounter a semicolon
+	for !cur_token_is(parser, .Semicolon) {
+		next_token(parser)
+	}
 	return stmt
 }
