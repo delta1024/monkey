@@ -8,6 +8,8 @@ parse_statement :: proc(using parser: ^Parser) -> (stmt: ast.Statement) {
 		stmt = parse_let_statement(parser)
 	case .Return:
 		stmt = parse_return_statement(parser)
+	case:
+		stmt = parse_expression_statement(parser)
 	}
 	return
 }
@@ -44,6 +46,16 @@ parse_return_statement :: proc(using parser: ^Parser) -> ^ast.ReturnStatement {
 	// TODO: We're skipping the expressions until we
 	// encounter a semicolon
 	for !cur_token_is(parser, .Semicolon) {
+		next_token(parser)
+	}
+	return stmt
+}
+
+parse_expression_statement :: proc(using parser: ^Parser) -> ^ast.ExpressionStatement {
+	stmt := ast.node_make(ast.ExpressionStatement, cur_token)
+	stmt.expression = parse_expression(parser, .Lowest)
+
+	if peek_token_is(parser, .Semicolon) {
 		next_token(parser)
 	}
 	return stmt

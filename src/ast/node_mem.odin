@@ -36,6 +36,16 @@ return_node_make :: proc(
 	return node
 }
 
+expression_statement_node_make :: proc(
+	$T: typeid/ExpressionStatement,
+	token: tokenizer.Token,
+	expression: Expression = nil,
+) -> ^T {
+	node := base_node_make(T, token)
+	node.expression = expression
+	return node
+}
+
 identifier_node_make :: proc($T: typeid/Identifier, token: tokenizer.Token) -> ^T {
 	node := base_node_make(T, token)
 	node.value = token.literal
@@ -46,6 +56,7 @@ node_make :: proc {
 	program_node_make,
 	let_node_make,
 	return_node_make,
+	expression_statement_node_make,
 	identifier_node_make,
 }
 
@@ -63,6 +74,8 @@ statement_node_delete :: proc(stmt: Statement) {
 		node_delete(node)
 	case ^ReturnStatement:
 		node_delete(node)
+	case ^ExpressionStatement:
+		node_delete(node)
 	}
 }
 
@@ -77,6 +90,10 @@ return_node_delete :: proc(node: ^ReturnStatement) {
 	free(node)
 }
 
+expression_statement_node_delete :: proc(node: ^ExpressionStatement) {
+	node_delete(node.expression)
+	free(node)
+}
 expression_node_delete :: proc(expr: Expression) {
 	switch node in expr {
 	case ^Identifier:
@@ -93,6 +110,7 @@ node_delete :: proc {
 	statement_node_delete,
 	let_node_delete,
 	return_node_delete,
+	expression_statement_node_delete,
 	expression_node_delete,
 	identifier_node_delete,
 }

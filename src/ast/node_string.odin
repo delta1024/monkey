@@ -21,6 +21,8 @@ statement_node_string :: proc(stmt: Statement) -> (out: string) {
 		out = node_string(node)
 	case ^ReturnStatement:
 		out = node_string(node)
+	case ^ExpressionStatement:
+		out = node_string(node)
 	case:
 		out = string(make_slice([]byte, 1))
 	}
@@ -55,6 +57,14 @@ return_node_string :: proc(using ret_stmt: ^ReturnStatement) -> string {
 	return strings.to_string(out)
 }
 
+expression_statement_node_string :: proc(using expr_stmn: ^ExpressionStatement) -> string {
+	if expression != nil {
+		return node_string(expression)
+	} else {
+		return string(make([]byte, 1))
+	}
+}
+
 expression_node_string :: proc(expr: Expression) -> (out: string) {
 	switch node in expr {
 	case ^Identifier:
@@ -68,11 +78,13 @@ expression_node_string :: proc(expr: Expression) -> (out: string) {
 identifier_node_string :: proc(using ident_expr: ^Identifier) -> string {
 	return strings.clone(value)
 }
+
 node_string :: proc {
 	program_node_string,
 	statement_node_string,
 	let_node_string,
 	return_node_string,
+	expression_statement_node_string,
 	expression_node_string,
 	identifier_node_string,
 }
