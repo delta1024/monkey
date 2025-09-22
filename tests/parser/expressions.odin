@@ -275,6 +275,12 @@ test_operator_precedence_parsing :: proc(t: ^testing.T) {
 		{"2 / (5 + 5)", "(2 / (5 + 5))"},
 		{"-(5 + 5)", "(-(5 + 5))"},
 		{"!(true == true)", "(!(true == true))"},
+		{"a + add(b * c) + d", "((a + add((b * c))) + d)"},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
+		{"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"},
 	}
 
 	for tt in tests {
@@ -533,4 +539,58 @@ test_function_paramater_parsing :: proc(t: ^testing.T) {
 			test_literal_expression(t, "function.paramaters[i]", function.parameters[i], ident)
 		}
 	}
+}
+@(test)
+test_call_expression_parsing :: proc(t: ^testing.T) {
+	input :: "add(1, 2 * 3, 4 + 5);"
+
+	lexer: tokenizer.Tokenizer
+	tokenizer.tokenizer_init(&lexer, input)
+
+	using parser
+	parser := parser_create(lexer)
+	defer parser_destroy(parser)
+
+	program := parse_program(&parser)
+	defer ast.node_delete(program)
+	check_parser_error(t, &parser)
+
+	testing.expectf(
+		t,
+		len(program.statements) == 1,
+		"program.statements does not contain %d statements. got=%d",
+		1,
+		len(program.statements),
+	)
+
+	stmt, stmt_ok := program.statements[0].(^ast.ExpressionStatement)
+
+	if !stmt_ok {
+		fail_expected_statement(
+			t,
+			"program.statements[0]",
+			"ast.ExpressionStatement",
+			program.statements[0],
+		)
+	}
+
+	exp, exp_ok := stmt.expression.(^ast.CallExpression)
+
+	if !exp_ok {
+		fail_expected_expression(t, "stmt.expression", "ast.CallExpression", stmt.expression)
+	}
+	test_identifier(t, "exp.function", exp.function, "add")
+
+
+	testing.expectf(
+		t,
+		len(exp.arguments) == 3,
+		"wrong length of arguments. got=%d",
+		len(exp.arguments),
+	)
+
+	test_literal_expression(t, "exp.arguments[0]", exp.arguments[0], 1)
+	test_infix_expression(t, "exp.arguments[1]", exp.arguments[1], i64(2), "*", i64(3))
+	test_infix_expression(t, "exp.arguments[2]", exp.arguments[2], i64(4), "+", i64(5))
+
 }

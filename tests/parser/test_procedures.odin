@@ -226,6 +226,8 @@ fail_expected_expression :: proc(
 		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
 	case ^ast.FunctionLiteral:
 		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
+	case ^ast.CallExpression:
+		fail_expected_type(t, field_name, expected_name, expr, loc = loc)
 	}
 }
 @(private)

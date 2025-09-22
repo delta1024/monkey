@@ -40,6 +40,7 @@ parser_create :: proc(lexer: tokenizer.Tokenizer) -> Parser {
 			.Not_Eq = parse_infix_expression,
 			.Lt = parse_infix_expression,
 			.Gt = parse_infix_expression,
+			.LParen = parse_call_expression,
 		},
 		precedences = map[tokenizer.TokenType]Precedence {
 			.Eq = .Equals,
@@ -50,6 +51,7 @@ parser_create :: proc(lexer: tokenizer.Tokenizer) -> Parser {
 			.Minus = .Sum,
 			.Slash = .Product,
 			.Asterisk = .Product,
+			.LParen = .Call,
 		},
 	}
 

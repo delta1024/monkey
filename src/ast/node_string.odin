@@ -86,6 +86,8 @@ expression_node_string :: proc(expr: Expression) -> (out: string) {
 		out = node_string(node)
 	case ^IfExpression:
 		out = node_string(node)
+	case ^CallExpression:
+		out = node_string(node)
 	case ^Identifier:
 		out = node_string(node)
 	case ^FunctionLiteral:
@@ -147,6 +149,37 @@ if_expression_node_string :: proc(using if_node: ^IfExpression) -> string {
 	return strings.to_string(out)
 }
 
+call_expression_node_string :: proc(using call_node: ^CallExpression) -> string {
+	out := strings.builder_make()
+
+	args := make([dynamic]string)
+	defer {
+		for s in args {
+			delete(s)
+		}
+		delete(args)
+	}
+
+	for a in arguments {
+		a_str := node_string(a)
+		append(&args, a_str)
+	}
+
+	fn_str := node_string(function)
+	defer delete(fn_str)
+
+	strings.write_string(&out, fn_str)
+	strings.write_byte(&out, '(')
+
+	joined_args := strings.join(args[:], ", ")
+	defer delete(joined_args)
+
+	strings.write_string(&out, joined_args)
+	strings.write_byte(&out, ')')
+
+	return strings.to_string(out)
+}
+
 identifier_node_string :: proc(using ident_expr: ^Identifier) -> string {
 	return strings.clone(value)
 }
@@ -202,6 +235,7 @@ node_string :: proc {
 	prefix_expression_node_string,
 	if_expression_node_string,
 	infix_expression_node_string,
+	call_expression_node_string,
 	identifier_node_string,
 	function_literal_node_string,
 	integer_literal_node_string,

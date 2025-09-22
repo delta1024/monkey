@@ -36,6 +36,8 @@ expression_token_literal :: proc(expr: Expression) -> string {
 		node = n
 	case ^IfExpression:
 		node = n
+	case ^CallExpression:
+		node = n
 	case ^Identifier:
 		node = n
 	case ^FunctionLiteral:
