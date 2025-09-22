@@ -12,6 +12,7 @@ Node :: struct {
 		^InfixExpression,
 		^IfExpression,
 		^Identifier,
+		^FunctionLiteral,
 		^IntegerLiteral,
 		^Boolean,
 	},
@@ -54,6 +55,7 @@ Expression :: union {
 	^InfixExpression,
 	^IfExpression,
 	^Identifier,
+	^FunctionLiteral,
 	^IntegerLiteral,
 	^Boolean,
 }
@@ -81,6 +83,12 @@ IfExpression :: struct {
 Identifier :: struct {
 	using node: Node,
 	value:      string,
+}
+
+FunctionLiteral :: struct {
+	using node: Node,
+	parameters: []^Identifier,
+	body:       ^BlockStatement,
 }
 
 IntegerLiteral :: struct {

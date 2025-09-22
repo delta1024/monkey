@@ -104,6 +104,18 @@ identifier_node_make :: proc($T: typeid/Identifier, token: tokenizer.Token) -> ^
 	return node
 }
 
+function_literal_node_make :: proc(
+	$T: typeid/FunctionLiteral,
+	token: tokenizer.Token,
+	parameters: []^Identifier = nil,
+	body: ^BlockStatement = nil,
+) -> ^T {
+	node := base_node_make(T, token)
+	node.parameters = parameters
+	node.body = body
+	return node
+}
+
 integer_literal_node_make :: proc(
 	$T: typeid/IntegerLiteral,
 	token: tokenizer.Token,
@@ -129,6 +141,7 @@ node_make :: proc {
 	infix_expression_node_make,
 	if_expression_node_make,
 	identifier_node_make,
+	function_literal_node_make,
 	integer_literal_node_make,
 	boolean_node_make,
 }
@@ -190,6 +203,8 @@ expression_node_delete :: proc(expr: Expression) {
 		node_delete(node)
 	case ^Identifier:
 		node_delete(node)
+	case ^FunctionLiteral:
+		node_delete(node)
 	case ^IntegerLiteral:
 		node_delete(node)
 	case ^Boolean:
@@ -218,6 +233,15 @@ identifier_node_delete :: proc(node: ^Identifier) {
 	free(node)
 }
 
+function_literal_node_delete :: proc(node: ^FunctionLiteral) {
+	for ident in node.parameters {
+		node_delete(ident)
+	}
+	delete(node.parameters)
+	node_delete(node.body)
+	free(node)
+}
+
 integer_literal_node_delete :: proc(node: ^IntegerLiteral) {
 	free(node)
 }
@@ -237,6 +261,7 @@ node_delete :: proc {
 	infix_expression_node_delete,
 	if_expression_node_delete,
 	identifier_node_delete,
+	function_literal_node_delete,
 	integer_literal_node_delete,
 	boolean_node_delete,
 }

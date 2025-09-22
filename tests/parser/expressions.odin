@@ -429,3 +429,108 @@ test_if_else_expression :: proc(t: ^testing.T) {
 	test_identifier(t, "alternative.expression", alternative.expression, "y")
 
 }
+@(test)
+test_function_literal_parsing :: proc(t: ^testing.T) {
+	input :: `fn(x, y) { x + y; }`
+
+	lexer: tokenizer.Tokenizer
+	tokenizer.tokenizer_init(&lexer, input)
+
+	using parser
+	parser := parser_create(lexer)
+	defer parser_destroy(parser)
+
+	program := parse_program(&parser)
+	defer ast.node_delete(program)
+
+	check_parser_error(t, &parser)
+
+	testing.expectf(
+		t,
+		len(program.statements) == 1,
+		"program.statements does not contain %d statements. got=%d\n",
+		1,
+		len(program.statements),
+	)
+
+	stmt, stmt_ok := program.statements[0].(^ast.ExpressionStatement)
+
+	if !stmt_ok {
+		fail_expected_statement(
+			t,
+			"program.statements[0]",
+			"ast.ExpressionStatement",
+			program.statements[0],
+		)
+	}
+
+	function, fn_ok := stmt.expression.(^ast.FunctionLiteral)
+	if !fn_ok {
+		fail_expected_expression(t, "stmt.expression", "ast.FunctionLiteral", stmt.expression)
+	}
+
+	testing.expectf(
+		t,
+		len(function.parameters) == 2,
+		"function literal parameters wrong. want 2, got=%d\n",
+		len(function.parameters),
+	)
+
+	test_literal_expression(t, "function.parameters[0]", function.parameters[0], "x")
+	test_literal_expression(t, "function.parameters[1]", function.parameters[1], "y")
+
+	testing.expectf(
+		t,
+		len(function.body.statements) == 1,
+		"function.Body.Statements has not 1 statements. got=%d\n",
+		len(function.body.statements),
+	)
+
+	body_stmt, body_ok := function.body.statements[0].(^ast.ExpressionStatement)
+
+	if !body_ok {
+		fail_expected_statement(
+			t,
+			"function body stmt",
+			"ast.ExpressionStatement",
+			function.body.statements[0],
+		)
+	}
+
+	test_infix_expression(t, "body_stmt.expression", body_stmt.expression, "x", "+", "y")
+}
+@(test)
+test_function_paramater_parsing :: proc(t: ^testing.T) {
+	tests := []struct {
+		input:           string,
+		expected_params: []string,
+	}{{"fn() {};", {}}, {"fn(x) {};", {"x"}}, {"fn(x, y, z) {};", {"x", "y", "z"}}}
+
+	for tt in tests {
+		lexer: tokenizer.Tokenizer
+		tokenizer.tokenizer_init(&lexer, tt.input)
+
+		using parser
+		parser := parser_create(lexer)
+		defer parser_destroy(parser)
+
+		program := parse_program(&parser)
+		defer ast.node_delete(program)
+		check_parser_error(t, &parser)
+
+		stmt, _ := program.statements[0].(^ast.ExpressionStatement)
+		function, _ := stmt.expression.(^ast.FunctionLiteral)
+
+		testing.expectf(
+			t,
+			len(function.parameters) == len(tt.expected_params),
+			"length parameters wrong. want %d, got=%d\n",
+			len(tt.expected_params),
+			len(function.parameters),
+		)
+
+		for ident, i in tt.expected_params {
+			test_literal_expression(t, "function.paramaters[i]", function.parameters[i], ident)
+		}
+	}
+}
