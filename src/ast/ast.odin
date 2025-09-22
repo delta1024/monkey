@@ -33,7 +33,7 @@ Statement :: union {
 LetStatement :: struct {
 	using node: Node,
 	name:       ^Identifier,
-	value:      Expression "optional value",
+	value:      Expression,
 }
 
 ReturnStatement :: struct {

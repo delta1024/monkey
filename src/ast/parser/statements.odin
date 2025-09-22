@@ -14,24 +14,30 @@ parse_statement :: proc(using parser: ^Parser) -> (stmt: ast.Statement) {
 	return
 }
 
-parse_let_statement :: proc(using parser: ^Parser) -> ^ast.LetStatement {
+parse_let_statement :: proc(using parser: ^Parser) -> (node: ^ast.LetStatement) {
 	using ast
 	stmt := node_make(ast.LetStatement, cur_token)
+	defer if node == nil {
+		free(stmt)
+	}
 	if !expect_peek(parser, .Ident) {
-		node_delete(stmt)
-		return nil
+		return
 	}
 
 	stmt.name = node_make(ast.Identifier, cur_token)
-
-	if !expect_peek(parser, .Assign) {
-		node_delete(stmt)
-		return nil
+	defer if node == nil {
+		node_delete(stmt.name)
 	}
 
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !cur_token_is(parser, .Semicolon) {
+	if !expect_peek(parser, .Assign) {
+		return
+	}
+
+	next_token(parser)
+
+	stmt.value = parse_expression(parser, .Lowest)
+
+	if peek_token_is(parser, .Semicolon) {
 		next_token(parser)
 	}
 
@@ -43,9 +49,9 @@ parse_return_statement :: proc(using parser: ^Parser) -> ^ast.ReturnStatement {
 	stmt := node_make(ReturnStatement, cur_token)
 	next_token(parser)
 
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !cur_token_is(parser, .Semicolon) {
+	stmt.return_value = parse_expression(parser, .Lowest)
+
+	if peek_token_is(parser, .Semicolon) {
 		next_token(parser)
 	}
 	return stmt
