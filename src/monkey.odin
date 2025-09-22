@@ -1,5 +1,7 @@
 package main
 
+import "ast"
+import "ast/parser"
 import "core:fmt"
 import "core:os"
 import "tokenizer"
@@ -7,6 +9,7 @@ import "tokenizer"
 main :: proc() {
 	buf: [256]byte
 	using tokenizer
+	using parser
 
 	name := os.get_env_buf(buf[:], "USER")
 
@@ -28,9 +31,46 @@ main :: proc() {
 		lexer: Tokenizer
 		tokenizer_init(&lexer, str)
 
-		for token := tokenizer_next(&lexer); token.type != .Eof; token = tokenizer_next(&lexer) {
-			fmt.println("{ ", token.type, ", ", token.literal, " }")
+
+		parser := parser_create(lexer)
+		defer parser_destroy(parser)
+
+		program := parse_program(&parser)
+		defer ast.node_delete(program)
+
+		if len(parser.errors) != 0 {
+			print_parser_errors(parser.errors[:])
+			continue
 		}
 
+		prog_str := ast.node_string(program)
+		defer delete(prog_str)
+
+		fmt.println(prog_str)
+	}
+}
+
+@(private = "file")
+MONKEY_FACE :: `            __,__
+   .--.  .-"     "-.  .--.
+  / .. \/  .-. .-.  \/ .. \
+ | |  '|  /   Y   \  |'  | |
+ | \   \  \ 0 | 0 /  /   / |
+  \ '- ,\.-"""""""-./, -' /
+   ''-' /_   ^ ^   _\ '-''
+       |  \._   _./  |
+       \   \ '~' /   /
+        '._ '-=-' _.'
+           '-----'
+`
+
+
+@(private = "file")
+print_parser_errors :: proc(errors: []string) {
+	fmt.print(MONKEY_FACE)
+	fmt.println("Woops! We ran into some monkey business here!")
+	fmt.println("parser errors:")
+	for msg in errors {
+		fmt.printfln("\t%s", msg)
 	}
 }
