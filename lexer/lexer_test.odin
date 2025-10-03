@@ -12,19 +12,66 @@ R_BRACE: token.Token : {.R_Brace, "}"}
 COMMA: token.Token : {.Comma, ","}
 SEMI_COLON: token.Token : {.Semi_Colon, ";"}
 EOF: token.Token : {.Eof, ""}
+LET: token.Token : {.Let, "let"}
+FUNCTION: token.Token : {.Function, "fn"}
+
+ident :: #force_inline proc($lexum: string) -> token.Token {
+	return {.Ident, lexum}
+}
+
+integer :: #force_inline proc($num: string) -> token.Token {
+	return {.Int, num}
+}
 
 @(test)
 test_next_token :: proc(t: ^testing.T) {
-	input :: `=+(){},;`
+	input :: `let five = 5;
+let ten = 10;
+
+let add = fn(x, y) {
+  x + y;
+};
+
+let result = add(five, ten);
+`
+
 
 	tests := []token.Token {
+		LET,
+		ident("five"),
 		ASSIGN,
-		PLUS,
+		integer("5"),
+		SEMI_COLON,
+		LET,
+		ident("ten"),
+		ASSIGN,
+		integer("10"),
+		SEMI_COLON,
+		LET,
+		ident("add"),
+		ASSIGN,
+		FUNCTION,
 		L_PAREN,
+		ident("x"),
+		COMMA,
+		ident("y"),
 		R_PAREN,
 		L_BRACE,
+		ident("x"),
+		PLUS,
+		ident("y"),
+		SEMI_COLON,
 		R_BRACE,
+		SEMI_COLON,
+		LET,
+		ident("result"),
+		ASSIGN,
+		ident("add"),
+		L_PAREN,
+		ident("five"),
 		COMMA,
+		ident("ten"),
+		R_PAREN,
 		SEMI_COLON,
 		EOF,
 	}

@@ -1,5 +1,7 @@
+#+feature dynamic-literals
 package lexer
 import "../token"
+import "core:text/scanner"
 
 Lexer :: struct {
 	input:         string,
@@ -8,6 +10,10 @@ Lexer :: struct {
 	ch:            byte,
 }
 
+@(private)
+Whitespace :: bit_set[byte('\t') ..= byte(' ')]
+@(private)
+MONKEY_WHITESPACE: Whitespace : {' ', '\t', '\n', '\r'}
 init_lexer :: proc(input: string) -> Lexer {
 	l: Lexer
 	l.input = input
@@ -15,6 +21,14 @@ init_lexer :: proc(input: string) -> Lexer {
 	return l
 }
 next_token :: proc(l: ^Lexer) -> (tok: token.Token) {
+
+
+	for {
+		if l.ch not_in MONKEY_WHITESPACE {
+			break
+		}
+		read_char(l)
+	}
 	switch l.ch {
 	case '=':
 		tok = new_token(.Assign)
@@ -36,13 +50,61 @@ next_token :: proc(l: ^Lexer) -> (tok: token.Token) {
 		tok.literal = ""
 		tok.type = .Eof
 	case:
-		tok.type = .Illegal
-		tok.literal = l.input[l.position:l.read_position]
+		if is_letter(l.ch) {
+			tok.literal = read_identifier(l)
+			tok.type = look_up_ident(tok.literal)
+			return tok
+		} else if is_digit(l.ch) {
+			tok.type = .Int
+			tok.literal = read_number(l)
+			return tok
+		} else {
+
+			tok.type = .Illegal
+			tok.literal = l.input[l.position:l.read_position]
+		}
 	}
 	read_char(l)
 	return tok
 }
+@(private)
+look_up_ident :: proc(ident: string) -> token.Token_Type {
+	keywords := map[string]token.Token_Type {
+		"fn"  = .Function,
+		"let" = .Let,
+	}
+	defer delete(keywords)
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return .Ident
+}
+@(private)
+read_identifier :: proc(l: ^Lexer) -> string {
 
+	position := l.position
+	for is_letter(l.ch) {
+		read_char(l)
+	}
+	return l.input[position:l.position]
+}
+@(private)
+is_letter :: proc(ch: byte) -> bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+@(private)
+read_number :: proc(l: ^Lexer) -> string {
+	position := l.position
+
+	for is_digit(l.ch) {
+		read_char(l)
+	}
+	return l.input[position:l.position]
+}
+@(private)
+is_digit :: proc(ch: byte) -> bool {
+	return '0' <= ch && ch <= '9'
+}
 @(private)
 read_char :: proc(l: ^Lexer) {
 	if l.read_position >= len(l.input) {
