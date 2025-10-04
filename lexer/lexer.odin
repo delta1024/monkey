@@ -40,6 +40,18 @@ next_token :: proc(l: ^Lexer) -> (tok: token.Token) {
 		tok = new_token(.R_Paren)
 	case ',':
 		tok = new_token(.Comma)
+	case '-':
+		tok = new_token(.Minus)
+	case '!':
+		tok = new_token(.Bang)
+	case '/':
+		tok = new_token(.Slash)
+	case '*':
+		tok = new_token(.Asterisk)
+	case '<':
+		tok = new_token(.Lt)
+	case '>':
+		tok = new_token(.Gt)
 	case '+':
 		tok = new_token(.Plus)
 	case '{':

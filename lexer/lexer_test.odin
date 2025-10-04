@@ -14,6 +14,12 @@ SEMI_COLON: token.Token : {.Semi_Colon, ";"}
 EOF: token.Token : {.Eof, ""}
 LET: token.Token : {.Let, "let"}
 FUNCTION: token.Token : {.Function, "fn"}
+BANG: token.Token : {.Bang, "!"}
+MINUS: token.Token : {.Minus, "-"}
+SLASH: token.Token : {.Slash, "/"}
+ASTERISK: token.Token : {.Asterisk, "*"}
+LT: token.Token : {.Lt, "<"}
+GT: token.Token : {.Gt, ">"}
 
 ident :: #force_inline proc($lexum: string) -> token.Token {
 	return {.Ident, lexum}
@@ -33,6 +39,8 @@ let add = fn(x, y) {
 };
 
 let result = add(five, ten);
+!-/*5;
+5 < 10 > 5;
 `
 
 
@@ -72,6 +80,18 @@ let result = add(five, ten);
 		COMMA,
 		ident("ten"),
 		R_PAREN,
+		SEMI_COLON,
+		BANG,
+		MINUS,
+		SLASH,
+		ASTERISK,
+		integer("5"),
+		SEMI_COLON,
+		integer("5"),
+		LT,
+		integer("10"),
+		GT,
+		integer("5"),
 		SEMI_COLON,
 		EOF,
 	}
