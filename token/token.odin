@@ -22,6 +22,11 @@ Token_Type :: enum {
 	R_Brace,
 	Function,
 	Let,
+	True,
+	False,
+	If,
+	Else,
+	Return,
 }
 
 token_strings := [Token_Type]string {
@@ -45,6 +50,11 @@ token_strings := [Token_Type]string {
 	.R_Brace    = "}",
 	.Function   = "FUNCTION",
 	.Let        = "LET",
+	.True       = "TRUE",
+	.False      = "FALSE",
+	.If         = "IF",
+	.Else       = "ELSE",
+	.Return     = "RETURN",
 }
 
 Token :: struct {

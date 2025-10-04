@@ -82,8 +82,13 @@ next_token :: proc(l: ^Lexer) -> (tok: token.Token) {
 @(private)
 look_up_ident :: proc(ident: string) -> token.Token_Type {
 	keywords := map[string]token.Token_Type {
-		"fn"  = .Function,
-		"let" = .Let,
+		"fn"     = .Function,
+		"let"    = .Let,
+		"true"   = .True,
+		"false"  = .False,
+		"if"     = .If,
+		"else"   = .Else,
+		"return" = .Return,
 	}
 	defer delete(keywords)
 	if tok, ok := keywords[ident]; ok {

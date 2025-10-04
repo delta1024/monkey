@@ -20,6 +20,11 @@ SLASH: token.Token : {.Slash, "/"}
 ASTERISK: token.Token : {.Asterisk, "*"}
 LT: token.Token : {.Lt, "<"}
 GT: token.Token : {.Gt, ">"}
+IF: token.Token : {.If, "if"}
+RETURN: token.Token : {.Return, "return"}
+TRUE: token.Token : {.True, "true"}
+ELSE: token.Token : {.Else, "else"}
+FALSE: token.Token : {.False, "false"}
 
 ident :: #force_inline proc($lexum: string) -> token.Token {
 	return {.Ident, lexum}
@@ -41,6 +46,12 @@ let add = fn(x, y) {
 let result = add(five, ten);
 !-/*5;
 5 < 10 > 5;
+
+if (5 < 10) {
+    return true;
+} else {
+    return false;
+}
 `
 
 
@@ -93,6 +104,23 @@ let result = add(five, ten);
 		GT,
 		integer("5"),
 		SEMI_COLON,
+		IF,
+		L_PAREN,
+		integer("5"),
+		LT,
+		integer("10"),
+		R_PAREN,
+		L_BRACE,
+		RETURN,
+		TRUE,
+		SEMI_COLON,
+		R_BRACE,
+		ELSE,
+		L_BRACE,
+		RETURN,
+		FALSE,
+		SEMI_COLON,
+		R_BRACE,
 		EOF,
 	}
 
