@@ -25,6 +25,8 @@ RETURN: token.Token : {.Return, "return"}
 TRUE: token.Token : {.True, "true"}
 ELSE: token.Token : {.Else, "else"}
 FALSE: token.Token : {.False, "false"}
+EQ: token.Token : {.Eq, "=="}
+NOT_EQ: token.Token : {.Not_Eq, "!="}
 
 ident :: #force_inline proc($lexum: string) -> token.Token {
 	return {.Ident, lexum}
@@ -52,6 +54,9 @@ if (5 < 10) {
 } else {
     return false;
 }
+
+10 == 10;
+10 != 9;
 `
 
 
@@ -121,6 +126,14 @@ if (5 < 10) {
 		FALSE,
 		SEMI_COLON,
 		R_BRACE,
+		integer("10"),
+		EQ,
+		integer("10"),
+		SEMI_COLON,
+		integer("10"),
+		NOT_EQ,
+		integer("9"),
+		SEMI_COLON,
 		EOF,
 	}
 

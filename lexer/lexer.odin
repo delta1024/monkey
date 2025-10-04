@@ -31,7 +31,12 @@ next_token :: proc(l: ^Lexer) -> (tok: token.Token) {
 	}
 	switch l.ch {
 	case '=':
-		tok = new_token(.Assign)
+		if peek_char(l) == '=' {
+			read_char(l)
+			tok = new_token(.Eq)
+		} else {
+			tok = new_token(.Assign)
+		}
 	case ';':
 		tok = new_token(.Semi_Colon)
 	case '(':
@@ -43,7 +48,12 @@ next_token :: proc(l: ^Lexer) -> (tok: token.Token) {
 	case '-':
 		tok = new_token(.Minus)
 	case '!':
-		tok = new_token(.Bang)
+		if peek_char(l) == '=' {
+			read_char(l)
+			tok = new_token(.Not_Eq)
+		} else {
+			tok = new_token(.Bang)
+		}
 	case '/':
 		tok = new_token(.Slash)
 	case '*':
@@ -78,6 +88,14 @@ next_token :: proc(l: ^Lexer) -> (tok: token.Token) {
 	}
 	read_char(l)
 	return tok
+}
+@(private)
+peek_char :: proc(l: ^Lexer) -> byte {
+	if l.read_position >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.read_position]
+	}
 }
 @(private)
 look_up_ident :: proc(ident: string) -> token.Token_Type {
