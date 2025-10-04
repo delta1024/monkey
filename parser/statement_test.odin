@@ -16,12 +16,14 @@ let foobar = 838383;
 
 	l := lexer.init_lexer(input)
 	p := new_parser(l)
+	defer parser_free_errors(&p)
 
 	program := parse_program(&p)
 	if program == nil {
 		testing.fail_now(t, "parse_program returned nil")
 	}
 	defer ast.delete_node(program)
+	check_parser_errors(t, &p)
 
 	testing.expect_value(t, len(program.statements), 3)
 

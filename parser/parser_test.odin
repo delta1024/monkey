@@ -3,8 +3,21 @@ package parser
 
 import "../ast"
 import "core:fmt"
+import "core:log"
+import "core:strings"
 import "core:testing"
 
+check_parser_errors :: proc(t: ^testing.T, p: ^Parser, loc := #caller_location) {
+	if len(p.errors) == 0 {
+		return
+	}
+	sb := strings.builder_make(context.temp_allocator)
+	fmt.sbprintfln(&sb, "parser had %d errors", len(p.errors))
+	for msg in p.errors {
+		fmt.sbprintfln("parser error: %q", msg)
+	}
+	testing.fail_now(t, strings.to_string(sb), loc = loc)
+}
 test_let_statement :: proc(
 	t: ^testing.T,
 	s: ast.Statement,
