@@ -57,9 +57,23 @@ expression_node_string :: proc(e: Expression) -> string {
 		return node_string(n)
 	case ^Prefix_Expression:
 		return node_string(n)
+	case ^Infix_Expression:
+		return node_string(n)
 	case:
 		return ""
 	}
+}
+
+infix_expression_node_string :: proc(ie: ^Infix_Expression) -> string {
+	out := strings.builder_make(context.temp_allocator)
+
+	fmt.sbprint(&out, "(")
+	fmt.sbprint(&out, node_string(ie.left))
+	fmt.sbprintf(&out, " %s ", ie.operator)
+	fmt.sbprint(&out, node_string(ie.right))
+	fmt.sbprint(&out, ")")
+
+	return strings.to_string(out)
 }
 
 prefix_expression_node_string :: proc(pe: ^Prefix_Expression) -> string {
@@ -86,6 +100,7 @@ node_string :: proc {
 	return_statement_node_string,
 	expression_statement_node_string,
 	expression_node_string,
+	infix_expression_node_string,
 	prefix_expression_node_string,
 	identifier_node_string,
 	integer_literal_string,

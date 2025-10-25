@@ -46,6 +46,20 @@ make_expression_statement_node :: proc(
 	return node
 }
 
+make_infix_expression_node :: proc(
+	$T: typeid/Infix_Expression,
+	tok: token.Token,
+	left: Expression = nil,
+	operator: string = "",
+	right: Expression = nil,
+) -> ^T {
+	node := make_base_node(T, tok)
+	node.left = left
+	node.operator = operator
+	node.right = right
+	return node
+}
+
 make_prefix_expression_node :: proc(
 	$T: typeid/Prefix_Expression,
 	tok: token.Token,
@@ -82,6 +96,7 @@ make_node :: proc {
 	make_let_statement_node,
 	make_return_statement_node,
 	make_expression_statement_node,
+	make_infix_expression_node,
 	make_prefix_expression_node,
 	make_identifier_node,
 	make_integer_literal_node,
@@ -140,10 +155,17 @@ delete_expression_node :: proc(e: Expression) {
 		delete_node(node)
 	case ^Prefix_Expression:
 		delete_node(node)
+	case ^Infix_Expression:
+		delete_node(node)
 	case:
 	}
 }
 
+delete_infix_expression_node :: proc(ie: ^Infix_Expression) {
+	delete_node(ie.left)
+	delete_node(ie.right)
+	free(ie)
+}
 delete_prefix_expression_node :: proc(pe: ^Prefix_Expression) {
 	delete_node(pe.right)
 	free(pe)
@@ -162,6 +184,7 @@ delete_node :: proc {
 	delete_return_statement_node,
 	delete_expression_statement_node,
 	delete_expression_node,
+	delete_infix_expression_node,
 	delete_prefix_expression_node,
 	delete_identifier_node,
 	delete_integer_literal_node,
