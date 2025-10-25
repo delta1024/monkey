@@ -76,10 +76,29 @@ test_identifier :: proc(
 	testing.expect_value(t, ast.node_string(ident), value, loc = loc)
 }
 
+test_boolean_literal :: proc(
+	t: ^testing.T,
+	exp: ast.Expression,
+	value: bool,
+	loc := #caller_location,
+	exp_expression := #caller_expression(exp),
+) {
+
+	bl :=
+		exp.(^ast.Boolean_Literal) or_else testing.fail_now(
+			t,
+			fmt.tprintf("exp not ^ast.Boolean_Literal. got=%s", expr_varient_name(exp)),
+			loc = loc,
+		)
+
+	testing.expect_value(t, bl.value, value, loc = loc, value_expr = exp_expression)
+	testing.expect_value(t, ast.node_string(bl), value ? "true" : "false", loc = loc)
+}
 Expected_Value :: union {
 	i64,
 	int,
 	string,
+	bool,
 }
 test_literal_expression :: proc(
 	t: ^testing.T,
@@ -95,8 +114,11 @@ test_literal_expression :: proc(
 		test_integer_literal(t, exp, i64(e), loc = loc, value_expr = exp_expression)
 	case string:
 		test_identifier(t, exp, e, loc = loc, exp_expression = exp_expression)
+	case bool:
+		test_boolean_literal(t, exp, e, loc = loc, exp_expression = exp_expression)
 	}
 }
+
 stmt_varient_name :: proc(stmt: ast.Statement) -> string {
 	switch s in stmt {
 	case ^ast.Let_Statement:
@@ -119,6 +141,8 @@ expr_varient_name :: proc(expr: ast.Expression) -> string {
 	case ^ast.Infix_Expression:
 		return fmt.tprintf("%T", e)
 	case ^ast.Prefix_Expression:
+		return fmt.tprintf("%T", e)
+	case ^ast.Boolean_Literal:
 		return fmt.tprintf("%T", e)
 	case:
 		return "nil"
