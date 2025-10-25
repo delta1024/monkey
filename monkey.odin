@@ -37,13 +37,31 @@ main :: proc() {
 			print_parser_errors(p.errors[:])
 			continue
 		}
+
 		program_str := ast.node_string(program)
 		defer free_all(context.temp_allocator)
 		fmt.println(program_str)
 	}
 }
 
+MONKEY_FACE :: `            __,__
+   .--.  .-"     "-.  .--.
+  / .. \/  .-. .-.  \/ .. \
+ | |  '|  /   Y   \  |'  | |
+ | \   \  \ 0 | 0 /  /   / |
+  \ '- ,\.-"""""""-./, -' /
+   ''-' /_   ^ ^   _\ '-''
+       |  \._   _./  |
+       \   \ '~' /   /
+        '._ '-=-' _.'
+           '-----'
+`
+
+
 print_parser_errors :: proc(errors: []string) {
+	fmt.print(MONKEY_FACE)
+	fmt.println("Woops! We ran into some monkey business here!")
+	fmt.println(" parser errors:")
 	for msg in errors {
 		fmt.printfln("\t%s", msg)
 	}
