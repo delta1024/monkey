@@ -87,6 +87,111 @@ test_boolean_literal_expression :: proc(t: ^testing.T) {
 
 }
 @(test)
+test_if_expression :: proc(t: ^testing.T) {
+	input := "if (x < y) { x }"
+
+	l := lexer.init_lexer(input)
+	p := new_parser(l)
+	defer parser_free_errors(&p)
+
+	program := parse_program(&p)
+	defer ast.delete_node(program)
+	check_parser_errors(t, &p)
+
+	testing.expect_value(t, len(program.statements), 1)
+
+	stmt :=
+		program.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"expected ^ast.Expression_Statement. got=%s",
+				stmt_varient_name(program.statements[0]),
+			),
+		)
+	exp :=
+		stmt.expression.(^ast.If_Expression) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"stmt.expression is not ^ast.If_Expression. got=%s",
+				expr_varient_name(stmt.expression),
+			),
+		)
+	test_infix_expression(t, exp.condition, "x", "<", "y")
+
+	testing.expect_value(t, len(exp.consequence.statements), 1)
+
+	consequence :=
+		exp.consequence.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"statements[0] is not ^ast.Expression_Stotement. get=%s",
+				stmt_varient_name(exp.consequence.statements[0]),
+			),
+		)
+	test_identifier(t, consequence.expression, "x")
+	if exp.alternative != nil {
+		testing.fail_now(
+			t,
+			fmt.tprintf("exp.alternative statements was not nil. got=%p", exp.alternative),
+		)
+	}
+}
+@(test)
+test_if_else_expression :: proc(t: ^testing.T) {
+	input := "if (x < y) { x } else { y }"
+
+	l := lexer.init_lexer(input)
+	p := new_parser(l)
+	defer parser_free_errors(&p)
+
+	program := parse_program(&p)
+	defer ast.delete_node(program)
+	check_parser_errors(t, &p)
+
+	testing.expect_value(t, len(program.statements), 1)
+
+	stmt :=
+		program.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"expected ^ast.Expression_Statement. got=%s",
+				stmt_varient_name(program.statements[0]),
+			),
+		)
+	exp :=
+		stmt.expression.(^ast.If_Expression) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"stmt.expression is not ^ast.If_Expression. got=%s",
+				expr_varient_name(stmt.expression),
+			),
+		)
+	test_infix_expression(t, exp.condition, "x", "<", "y")
+
+	testing.expect_value(t, len(exp.consequence.statements), 1)
+
+	consequence :=
+		exp.consequence.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"statements[0] is not ^ast.Expression_Stotement. get=%s",
+				stmt_varient_name(exp.consequence.statements[0]),
+			),
+		)
+	test_identifier(t, consequence.expression, "x")
+
+	testing.expect_value(t, len(exp.alternative.statements), 1)
+	alternative :=
+		exp.alternative.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"statements[0] is not ^ast.Expression_Stotement. get=%s",
+				stmt_varient_name(exp.alternative.statements[0]),
+			),
+		)
+	test_identifier(t, alternative.expression, "y")
+}
+@(test)
 test_parsing_prefix_expressions :: proc(t: ^testing.T) {
 	prefix_tests := []struct {
 		input:         string,
@@ -172,22 +277,8 @@ test_parsing_infix_expressions :: proc(t: ^testing.T) {
 				),
 			)
 
+		test_infix_expression(t, stmt.expression, tt.left_value, tt.operator, tt.right_value)
 
-		exp :=
-			stmt.expression.(^ast.Infix_Expression) or_else testing.fail_now(
-				t,
-				fmt.tprint(
-					"expected ^ast.InfixExpression. got=%s",
-					expr_varient_name(stmt.expression),
-				),
-			)
-
-
-		test_literal_expression(t, exp.left, tt.left_value)
-
-		testing.expect_value(t, exp.operator, tt.operator)
-
-		test_literal_expression(t, exp.right, tt.right_value)
 	}
 }
 @(test)

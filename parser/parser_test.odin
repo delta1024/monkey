@@ -94,6 +94,30 @@ test_boolean_literal :: proc(
 	testing.expect_value(t, bl.value, value, loc = loc, value_expr = exp_expression)
 	testing.expect_value(t, ast.node_string(bl), value ? "true" : "false", loc = loc)
 }
+test_infix_expression :: proc(
+	t: ^testing.T,
+	exp: ast.Expression,
+	left: Expected_Value,
+	operator: string,
+	right: Expected_Value,
+	loc := #caller_location,
+	exp_expr := #caller_expression(exp),
+) {
+
+	exp :=
+		exp.(^ast.Infix_Expression) or_else testing.fail_now(
+			t,
+			fmt.tprint("expected ^ast.InfixExpression. got=%s", expr_varient_name(exp)),
+			loc = loc,
+		)
+
+
+	test_literal_expression(t, exp.left, left, loc = loc, exp_expression = exp_expr)
+
+	testing.expect_value(t, exp.operator, operator, loc = loc)
+
+	test_literal_expression(t, exp.right, right, loc = loc, exp_expression = exp_expr)
+}
 Expected_Value :: union {
 	i64,
 	int,
@@ -125,6 +149,8 @@ stmt_varient_name :: proc(stmt: ast.Statement) -> string {
 		return fmt.tprintf("%T", s)
 	case ^ast.Return_Statement:
 		return fmt.tprintf("%T", s)
+	case ^ast.Block_Statement:
+		return fmt.tprintf("%T", s)
 	case ^ast.Expression_Statement:
 		return fmt.tprintf("%T", s)
 	case:
@@ -139,6 +165,8 @@ expr_varient_name :: proc(expr: ast.Expression) -> string {
 	case ^ast.Integer_Literal:
 		return fmt.tprintf("%T", e)
 	case ^ast.Infix_Expression:
+		return fmt.tprintf("%T", e)
+	case ^ast.If_Expression:
 		return fmt.tprintf("%T", e)
 	case ^ast.Prefix_Expression:
 		return fmt.tprintf("%T", e)
