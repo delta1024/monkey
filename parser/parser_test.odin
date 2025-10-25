@@ -174,6 +174,8 @@ expr_varient_name :: proc(expr: ast.Expression) -> string {
 		return fmt.tprintf("%T", e)
 	case ^ast.Function_Literal:
 		return fmt.tprintf("%T", e)
+	case ^ast.Call_Expression:
+		return fmt.tprintf("%T", e)
 	case:
 		return "nil"
 	}

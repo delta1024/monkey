@@ -360,6 +360,42 @@ test_parsing_infix_expressions :: proc(t: ^testing.T) {
 	}
 }
 @(test)
+test_call_expression_parsing :: proc(t: ^testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+
+	l := lexer.init_lexer(input)
+	p := new_parser(l)
+	defer parser_free_errors(&p)
+
+	program := parse_program(&p)
+	defer ast.delete_node(program)
+	check_parser_errors(t, &p)
+
+	testing.expect_value(t, len(program.statements), 1)
+	stmt :=
+		program.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprint(
+				"expected ^ast.Expression_Statement. got=%s",
+				stmt_varient_name(program.statements[0]),
+			),
+		)
+	exp :=
+		stmt.expression.(^ast.Call_Expression) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"stmt.expression not ^ast.Call_Expression. got=%s",
+				expr_varient_name(stmt.expression),
+			),
+		)
+	test_identifier(t, exp.function, "add")
+	testing.expect_value(t, len(exp.arguments), 3)
+
+	test_literal_expression(t, exp.arguments[0], int(1))
+	test_infix_expression(t, exp.arguments[1], int(2), "*", int(3))
+	test_infix_expression(t, exp.arguments[2], int(4), "+", int(5))
+}
+@(test)
 test_operator_precedence_parsing :: proc(t: ^testing.T) {
 	tests := []struct {
 		input:    string,
@@ -386,6 +422,12 @@ test_operator_precedence_parsing :: proc(t: ^testing.T) {
 		{"2 / (5 + 5)", "(2 / (5 + 5))"},
 		{"-(5 + 5)", "(-(5 + 5))"},
 		{"!(true == true)", "(!(true == true))"},
+		{"a + add(b * c) + d", "((a + add((b * c))) + d)"},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
+		{"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"},
 	}
 
 	for tt in tests {
