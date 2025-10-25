@@ -124,3 +124,52 @@ parse_if_expression :: proc(p: ^Parser) -> (expression: ast.Expression) {
 	return ast.make_node(ast.If_Expression, if_tok, condition, consequence, alternative)
 
 }
+
+parse_function_literal :: proc(p: ^Parser) -> (lit: ast.Expression) {
+	lit_tok := p.cur_token
+	if !expect_peek(p, .L_Paren) {
+		return nil
+	}
+	paramaters := parse_function_paramaters(p)
+	defer if lit == nil {
+		for i in paramaters {
+			ast.delete_node(i)
+		}
+		delete(paramaters)
+	}
+	if !expect_peek(p, .L_Brace) {
+		return nil
+	}
+
+	body := parse_block_statement(p)
+	return ast.make_node(ast.Function_Literal, lit_tok, paramaters, body)
+}
+
+parse_function_paramaters :: proc(p: ^Parser) -> (params: []^ast.Identifier) {
+	identifiers := make([dynamic]^ast.Identifier)
+	defer if params == nil {
+		for i in identifiers {
+			ast.delete_node(i)
+		}
+		delete(identifiers)
+	}
+	if peek_token_is(p, .R_Paren) {
+		next_token(p)
+		return identifiers[:]
+	}
+
+	next_token(p)
+
+	ident := ast.make_node(ast.Identifier, p.cur_token, p.cur_token.literal)
+	append(&identifiers, ident)
+	for peek_token_is(p, .Comma) {
+		next_token(p)
+		next_token(p)
+		ident := ast.make_node(ast.Identifier, p.cur_token, p.cur_token.literal)
+		append(&identifiers, ident)
+	}
+	if !expect_peek(p, .R_Paren) {
+		return nil
+	}
+	return identifiers[:]
+}
