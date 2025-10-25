@@ -1,20 +1,28 @@
+#+feature dynamic-literals
 package parser
 import "../ast"
 import "../lexer"
 import "../token"
 import "core:fmt"
 
+Prefix_Parse_Fn :: #type proc(_: ^Parser) -> ast.Expression
+Infix_Parse_Fn :: #type proc(_: ^Parser, _: ast.Expression) -> ast.Expression
 Parser :: struct {
-	l:          lexer.Lexer,
-	cur_token:  token.Token,
-	peek_token: token.Token,
-	errors:     [dynamic]string,
+	l:                lexer.Lexer,
+	cur_token:        token.Token,
+	peek_token:       token.Token,
+	errors:           [dynamic]string,
+	prefix_parse_fns: map[token.Token_Type]Prefix_Parse_Fn,
+	infix_parse_fns:  map[token.Token_Type]Infix_Parse_Fn,
 }
 
 new_parser :: proc(l: lexer.Lexer) -> Parser {
-	p: Parser
-	p.l = l
-	p.errors = make([dynamic]string)
+	p: Parser = {
+		l = l,
+		errors = make([dynamic]string),
+		prefix_parse_fns = map[token.Token_Type]Prefix_Parse_Fn{.Ident = parse_identifier},
+		infix_parse_fns = map[token.Token_Type]Infix_Parse_Fn{},
+	}
 	next_token(&p)
 	next_token(&p)
 	return p
@@ -23,6 +31,8 @@ parser_free_errors :: proc(p: ^Parser) {
 	for err in p.errors {
 		delete(err)
 	}
+	delete(p.infix_parse_fns)
+	delete(p.prefix_parse_fns)
 	delete(p.errors)
 }
 
