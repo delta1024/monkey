@@ -51,3 +51,31 @@ test_integer_literal_expression :: proc(t: ^testing.T) {
 
 	testing.expect_value(t, ast.token_literal(literal), "5")
 }
+@(test)
+test_parsing_prefix_expressions :: proc(t: ^testing.T) {
+	prefix_tests := []struct {
+		input:         string,
+		operator:      string,
+		integer_value: i64,
+	}{{"!5", "!", 5}, {"-15", "-", 15}}
+
+	for tt in prefix_tests {
+		l := lexer.init_lexer(tt.input)
+		p := new_parser(l)
+		defer parser_free_errors(&p)
+
+		program := parse_program(&p)
+		defer ast.delete_node(program)
+		check_parser_errors(t, &p)
+
+		testing.expect_value(t, len(program.statements), 1)
+
+		stmt := program.statements[0].(^ast.Expression_Statement)
+
+		exp := stmt.expression.(^ast.Prefix_Expression)
+
+		testing.expect_value(t, exp.operator, tt.operator)
+
+		test_integer_literal(t, exp.right, tt.integer_value)
+	}
+}

@@ -34,3 +34,16 @@ test_let_statement :: proc(
 	tok_lit = ast.token_literal(let_stmt.name)
 	testing.expect_value(t, tok_lit, name, loc = loc)
 }
+
+test_integer_literal :: proc(
+	t: ^testing.T,
+	il: ast.Expression,
+	value: i64,
+	loc := #caller_location,
+	value_expr := #caller_expression(value),
+) {
+	integ := il.(^ast.Integer_Literal)
+
+	testing.expect_value(t, integ.value, value, loc = loc, value_expr = value_expr)
+	testing.expect_value(t, ast.token_literal(integ), fmt.tprintf("%d", value))
+}
