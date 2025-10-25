@@ -96,6 +96,18 @@ make_if_expression_node :: proc(
 	return node
 }
 
+make_call_expression_node :: proc(
+	$T: typeid/Call_Expression,
+	tok: token.Token,
+	function: Expression = nil,
+	arguments: []Expression = nil,
+) -> ^T {
+	node := make_base_node(T, tok)
+	node.function = function
+	node.arguments = arguments
+	return node
+}
+
 make_identifier_node :: proc($T: typeid/Identifier, tok: token.Token, value: string = "") -> ^T {
 	node := make_base_node(T, tok)
 	if value == "" {
@@ -145,6 +157,7 @@ make_node :: proc {
 	make_infix_expression_node,
 	make_prefix_expression_node,
 	make_if_expression_node,
+	make_call_expression_node,
 	make_identifier_node,
 	make_function_literal_node,
 	make_integer_literal_node,
@@ -221,6 +234,8 @@ delete_expression_node :: proc(e: Expression) {
 		delete_node(node)
 	case ^Function_Literal:
 		delete_node(node)
+	case ^Call_Expression:
+		delete_node(node)
 	case:
 	}
 }
@@ -241,6 +256,14 @@ delete_if_expression_node :: proc(ie: ^If_Expression) {
 	delete_node(ie.condition)
 	delete_node(ie.consequence)
 	free(ie)
+}
+delete_call_expression_node :: proc(ce: ^Call_Expression) {
+	for expr in ce.arguments {
+		delete_node(expr)
+	}
+	delete(ce.arguments)
+	delete_node(ce.function)
+	free(ce)
 }
 delete_identifier_node :: proc(i: ^Identifier) {
 	free(i)
@@ -271,6 +294,7 @@ delete_node :: proc {
 	delete_expression_node,
 	delete_infix_expression_node,
 	delete_prefix_expression_node,
+	delete_call_expression_node,
 	delete_if_expression_node,
 	delete_identifier_node,
 	delete_function_literal_node,

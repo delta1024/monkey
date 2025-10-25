@@ -12,6 +12,7 @@ Node :: struct {
 		^Infix_Expression,
 		^Prefix_Expression,
 		^If_Expression,
+		^Call_Expression,
 		^Identifier,
 		^Function_Literal,
 		^Integer_Literal,
@@ -56,6 +57,7 @@ Expression :: union {
 	^Infix_Expression,
 	^Prefix_Expression,
 	^If_Expression,
+	^Call_Expression,
 	^Identifier,
 	^Function_Literal,
 	^Integer_Literal,
@@ -80,6 +82,12 @@ If_Expression :: struct {
 	condition:   Expression,
 	consequence: ^Block_Statement,
 	alternative: ^Block_Statement,
+}
+
+Call_Expression :: struct {
+	using node: Node,
+	function:   Expression,
+	arguments:  []Expression,
 }
 
 Identifier :: struct {

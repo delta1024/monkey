@@ -75,6 +75,8 @@ expression_node_string :: proc(e: Expression) -> string {
 		return node_string(n)
 	case ^Function_Literal:
 		return node_string(n)
+	case ^Call_Expression:
+		return node_string(n)
 	case:
 		return ""
 	}
@@ -116,6 +118,22 @@ if_expression_node_string :: proc(ie: ^If_Expression) -> string {
 	}
 	return strings.to_string(out)
 }
+call_expression_node_string :: proc(ce: ^Call_Expression) -> string {
+	out := strings.builder_make(context.temp_allocator)
+
+	args := make([dynamic]string, context.temp_allocator)
+
+	for a in ce.arguments {
+		append(&args, node_string(a))
+	}
+	fmt.sbprint(&out, node_string(ce.function))
+	fmt.sbprint(&out, "(")
+	fmt.sbprint(&out, strings.join(args[:], ", ", allocator = context.temp_allocator))
+	fmt.sbprint(&out, ")")
+
+	return strings.to_string(out)
+}
+
 identifier_node_string :: proc(i: ^Identifier) -> string {
 	return i.value
 }
@@ -157,6 +175,7 @@ node_string :: proc {
 	infix_expression_node_string,
 	prefix_expression_node_string,
 	if_expression_node_string,
+	call_expression_node_string,
 	identifier_node_string,
 	function_literal_string,
 	integer_literal_string,
