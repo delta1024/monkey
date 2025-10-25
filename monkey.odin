@@ -1,11 +1,12 @@
 package main
 
+import "ast"
 import "core:fmt"
 import "core:os"
 import "lexer"
+import "parser"
 
 main :: proc() {
-	using lexer
 	buf: [256]byte
 
 	name := os.get_env_buf(buf[:], "USER")
@@ -25,10 +26,25 @@ main :: proc() {
 		}
 		str := string(buf[:n])
 
-		lexer := init_lexer(str)
+		l := lexer.init_lexer(str)
+		p := parser.new_parser(l)
+		defer parser.parser_free_errors(&p)
 
-		for tok := next_token(&lexer); tok.type != .Eof; tok = next_token(&lexer) {
-			fmt.println(tok)
+		program := parser.parse_program(&p)
+		defer ast.delete_node(program)
+
+		if len(p.errors) != 0 {
+			print_parser_errors(p.errors[:])
+			continue
 		}
+		program_str := ast.node_string(program)
+		defer free_all(context.temp_allocator)
+		fmt.println(program_str)
+	}
+}
+
+print_parser_errors :: proc(errors: []string) {
+	for msg in errors {
+		fmt.printfln("\t%s", msg)
 	}
 }
