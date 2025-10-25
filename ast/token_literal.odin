@@ -13,6 +13,8 @@ token_literal_statement_node :: proc(s: Statement) -> string {
 		node = n
 	case ^Expression_Statement:
 		node = n
+	case ^Block_Statement:
+		node = n
 	case:
 		return ""
 	}

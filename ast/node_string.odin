@@ -18,6 +18,8 @@ statement_node_string :: proc(s: Statement) -> string {
 		return node_string(n)
 	case ^Expression_Statement:
 		return node_string(n)
+	case ^Block_Statement:
+		return node_string(n)
 	case:
 		return ""
 	}
@@ -43,6 +45,14 @@ return_statement_node_string :: proc(rs: ^Return_Statement) -> string {
 	return strings.to_string(sb)
 }
 
+block_statement_node_string :: proc(bs: ^Block_Statement) -> string {
+	out := strings.builder_make(context.temp_allocator)
+
+	for s in bs.statements {
+		fmt.sbprint(&out, node_string(s))
+	}
+	return strings.to_string(out)
+}
 expression_statement_node_string :: proc(es: ^Expression_Statement) -> string {
 	sb := strings.builder_make(context.temp_allocator)
 	fmt.sbprint(&sb, node_string(es.expression))
@@ -103,6 +113,7 @@ node_string :: proc {
 	statement_node_string,
 	let_statement_node_string,
 	return_statement_node_string,
+	block_statement_node_string,
 	expression_statement_node_string,
 	expression_node_string,
 	infix_expression_node_string,

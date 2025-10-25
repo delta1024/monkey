@@ -36,6 +36,16 @@ make_return_statement_node :: proc(
 	return node
 }
 
+make_block_statement_node :: proc(
+	$T: typeid/Block_Statement,
+	tok: token.Token,
+	statements: []Statement = nil,
+) -> ^T {
+	node := make_base_node(T, tok)
+	node.statements = statements
+	return node
+}
+
 make_expression_statement_node :: proc(
 	$T: typeid/Expression_Statement,
 	tok: token.Token,
@@ -104,6 +114,7 @@ make_node :: proc {
 	make_program_node,
 	make_let_statement_node,
 	make_return_statement_node,
+	make_block_statement_node,
 	make_expression_statement_node,
 	make_infix_expression_node,
 	make_prefix_expression_node,
@@ -130,6 +141,8 @@ delete_statement_node :: proc(s: Statement) {
 		delete_node(node)
 	case ^Expression_Statement:
 		delete_node(node)
+	case ^Block_Statement:
+		delete_node(node)
 	case:
 	}
 }
@@ -150,6 +163,13 @@ delete_return_statement_node :: proc(rs: ^Return_Statement) {
 	free(rs)
 }
 
+delete_block_statement_node :: proc(bs: ^Block_Statement) {
+	for stmt in bs.statements {
+		delete_node(stmt)
+	}
+	delete(bs.statements)
+	free(bs)
+}
 delete_expression_statement_node :: proc(es: ^Expression_Statement) {
 	if es.expression != nil {
 		delete_node(es.expression)
@@ -197,6 +217,7 @@ delete_node :: proc {
 	delete_statement_node,
 	delete_let_statement_node,
 	delete_return_statement_node,
+	delete_block_statement_node,
 	delete_expression_statement_node,
 	delete_expression_node,
 	delete_infix_expression_node,
