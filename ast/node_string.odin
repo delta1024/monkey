@@ -71,6 +71,8 @@ expression_node_string :: proc(e: Expression) -> string {
 		return node_string(n)
 	case ^Boolean_Literal:
 		return node_string(n)
+	case ^If_Expression:
+		return node_string(n)
 	case:
 		return ""
 	}
@@ -98,6 +100,20 @@ prefix_expression_node_string :: proc(pe: ^Prefix_Expression) -> string {
 	return strings.to_string(out)
 }
 
+if_expression_node_string :: proc(ie: ^If_Expression) -> string {
+	out := strings.builder_make(context.temp_allocator)
+
+	fmt.sbprint(&out, "if")
+	fmt.sbprint(&out, node_string(ie.condition))
+	fmt.sbprint(&out, " ")
+	fmt.sbprint(&out, node_string(ie.consequence))
+
+	if ie.alternative != nil {
+		fmt.sbprint(&out, "else ")
+		fmt.sbprint(&out, node_string(ie.alternative))
+	}
+	return strings.to_string(out)
+}
 identifier_node_string :: proc(i: ^Identifier) -> string {
 	return i.value
 }
@@ -118,6 +134,7 @@ node_string :: proc {
 	expression_node_string,
 	infix_expression_node_string,
 	prefix_expression_node_string,
+	if_expression_node_string,
 	identifier_node_string,
 	integer_literal_string,
 	boolean_literal_string,

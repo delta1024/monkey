@@ -11,6 +11,7 @@ Node :: struct {
 		^Expression_Statement,
 		^Infix_Expression,
 		^Prefix_Expression,
+		^If_Expression,
 		^Identifier,
 		^Integer_Literal,
 		^Boolean_Literal,
@@ -53,6 +54,7 @@ Expression_Statement :: struct {
 Expression :: union {
 	^Infix_Expression,
 	^Prefix_Expression,
+	^If_Expression,
 	^Identifier,
 	^Integer_Literal,
 	^Boolean_Literal,
@@ -69,6 +71,13 @@ Infix_Expression :: struct {
 	left:       Expression,
 	operator:   string,
 	right:      Expression,
+}
+
+If_Expression :: struct {
+	using node:  Node,
+	condition:   Expression,
+	consequence: ^Block_Statement,
+	alternative: ^Block_Statement,
 }
 
 Identifier :: struct {
