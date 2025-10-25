@@ -7,6 +7,7 @@ Node :: struct {
 	variant: union {
 		^Let_Statement,
 		^Return_Statement,
+		^Expression_Statement,
 		^Identifier,
 	},
 }
@@ -18,6 +19,7 @@ Program :: struct {
 Statement :: union {
 	^Let_Statement,
 	^Return_Statement,
+	^Expression_Statement,
 }
 
 Let_Statement :: struct {
@@ -29,6 +31,11 @@ Let_Statement :: struct {
 Return_Statement :: struct {
 	using node:   Node,
 	return_value: Expression,
+}
+
+Expression_Statement :: struct {
+	using node: Node,
+	expression: Expression,
 }
 
 Expression :: union {

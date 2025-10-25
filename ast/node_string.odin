@@ -16,6 +16,8 @@ statement_node_string :: proc(s: Statement) -> string {
 		return node_string(n)
 	case ^Return_Statement:
 		return node_string(n)
+	case ^Expression_Statement:
+		return node_string(n)
 	case:
 		return ""
 	}
@@ -41,6 +43,12 @@ return_statement_node_string :: proc(rs: ^Return_Statement) -> string {
 	return strings.to_string(sb)
 }
 
+expression_statement_node_string :: proc(es: ^Expression_Statement) -> string {
+	sb := strings.builder_make(context.temp_allocator)
+	fmt.sbprint(&sb, node_string(es.expression))
+	return strings.to_string(sb)
+}
+
 expression_node_string :: proc(e: Expression) -> string {
 	switch n in e {
 	case ^Identifier:
@@ -58,6 +66,7 @@ node_string :: proc {
 	statement_node_string,
 	let_statement_node_string,
 	return_statement_node_string,
+	expression_statement_node_string,
 	expression_node_string,
 	identifier_node_string,
 }
