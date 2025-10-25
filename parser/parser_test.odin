@@ -14,7 +14,7 @@ check_parser_errors :: proc(t: ^testing.T, p: ^Parser, loc := #caller_location) 
 	sb := strings.builder_make(context.temp_allocator)
 	fmt.sbprintfln(&sb, "parser had %d errors", len(p.errors))
 	for msg in p.errors {
-		fmt.sbprintfln("parser error: %q", msg)
+		fmt.sbprintfln(&sb, "parser error: %q", msg)
 	}
 	testing.fail_now(t, strings.to_string(sb), loc = loc)
 }
