@@ -57,3 +57,20 @@ parse_return_statement :: proc(p: ^Parser) -> ^ast.Return_Statement {
 	}
 	return ast.make_node(ast.Return_Statement, ret_token)
 }
+parse_block_statement :: proc(p: ^Parser) -> ^ast.Block_Statement {
+
+	block_tok := p.cur_token
+	stmts := make([dynamic]ast.Statement)
+
+	next_token(p)
+
+	for !cur_token_is(p, .R_Brace) && !cur_token_is(p, .Eof) {
+		stmt := parse_statement(p)
+		if stmt != nil {
+			append(&stmts, stmt)
+		}
+		next_token(p)
+	}
+	return ast.make_node(ast.Block_Statement, block_tok, stmts[:])
+
+}
