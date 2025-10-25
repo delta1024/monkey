@@ -17,6 +17,7 @@ Precedence :: enum u8 {
 parse_expression :: proc(p: ^Parser, prec: Precedence) -> ast.Expression {
 	prefix, ok := p.prefix_parse_fns[p.cur_token.type]
 	if !ok {
+		no_prefix_parse_fn_error(p, p.cur_token.type)
 		return nil
 	}
 	left_exp := prefix(p)
@@ -37,4 +38,14 @@ parse_integer_literal :: proc(p: ^Parser) -> ast.Expression {
 		return nil
 	}
 	return ast.make_node(ast.Integer_Literal, lit_tok, value)
+}
+
+parse_prefix_expression :: proc(p: ^Parser) -> ast.Expression {
+	expr_tok := p.cur_token
+
+	next_token(p)
+
+	expr_right := parse_expression(p, .Prefix)
+
+	return ast.make_node(ast.Prefix_Expression, expr_tok, expr_tok.literal, expr_right)
 }

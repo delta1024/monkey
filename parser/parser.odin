@@ -23,6 +23,8 @@ new_parser :: proc(l: lexer.Lexer) -> Parser {
 		prefix_parse_fns = map[token.Token_Type]Prefix_Parse_Fn {
 			.Ident = parse_identifier,
 			.Int = parse_integer_literal,
+			.Bang = parse_prefix_expression,
+			.Minus = parse_prefix_expression,
 		},
 		infix_parse_fns = map[token.Token_Type]Infix_Parse_Fn{},
 	}
@@ -83,5 +85,10 @@ peek_error :: proc(p: ^Parser, t: token.Token_Type) {
 		token.token_strings[t],
 		token.token_strings[p.peek_token.type],
 	)
+	append(&p.errors, msg)
+}
+@(private)
+no_prefix_parse_fn_error :: proc(p: ^Parser, t: token.Token_Type) {
+	msg := fmt.aprintf("no prefix parse function for %s found", token.token_strings[t])
 	append(&p.errors, msg)
 }
