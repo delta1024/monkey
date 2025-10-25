@@ -59,6 +59,8 @@ expression_node_string :: proc(e: Expression) -> string {
 		return node_string(n)
 	case ^Infix_Expression:
 		return node_string(n)
+	case ^Boolean_Literal:
+		return node_string(n)
 	case:
 		return ""
 	}
@@ -93,6 +95,9 @@ identifier_node_string :: proc(i: ^Identifier) -> string {
 integer_literal_string :: proc(il: ^Integer_Literal) -> string {
 	return il.token.literal
 }
+boolean_literal_string :: proc(bl: ^Boolean_Literal) -> string {
+	return bl.value ? "true" : "false"
+}
 node_string :: proc {
 	program_node_string,
 	statement_node_string,
@@ -104,4 +109,5 @@ node_string :: proc {
 	prefix_expression_node_string,
 	identifier_node_string,
 	integer_literal_string,
+	boolean_literal_string,
 }

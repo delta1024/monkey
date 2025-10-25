@@ -30,6 +30,8 @@ token_literal_expression_node :: proc(e: Expression) -> string {
 		node = n
 	case ^Infix_Expression:
 		node = n
+	case ^Boolean_Literal:
+		node = n
 	case:
 		return ""
 	}
