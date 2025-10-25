@@ -41,6 +41,7 @@ new_parser :: proc(l: lexer.Lexer) -> Parser {
 			.Not_Eq = parse_infix_expression,
 			.Lt = parse_infix_expression,
 			.Gt = parse_infix_expression,
+			.L_Paren = parse_call_expression,
 		},
 		precedences = map[token.Token_Type]Precedence {
 			.Eq = .Equals,
@@ -51,6 +52,7 @@ new_parser :: proc(l: lexer.Lexer) -> Parser {
 			.Minus = .Sum,
 			.Slash = .Product,
 			.Asterisk = .Product,
+			.L_Paren = .Call,
 		},
 	}
 	next_token(&p)

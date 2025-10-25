@@ -173,3 +173,36 @@ parse_function_paramaters :: proc(p: ^Parser) -> (params: []^ast.Identifier) {
 	}
 	return identifiers[:]
 }
+parse_call_expression :: proc(p: ^Parser, function: ast.Expression) -> ast.Expression {
+	cur_tok := p.cur_token
+	arguments := parse_call_arguments(p)
+
+	return ast.make_node(ast.Call_Expression, cur_tok, function, arguments)
+}
+parse_call_arguments :: proc(p: ^Parser) -> (call_args: []ast.Expression) {
+	args := make([dynamic]ast.Expression)
+	defer if call_args == nil {
+		for e in args {
+			ast.delete_node(e)
+		}
+		delete(args)
+	}
+
+	if peek_token_is(p, .R_Paren) {
+		next_token(p)
+		return args[:]
+	}
+
+	next_token(p)
+	append(&args, parse_expression(p, .Lowest))
+
+	for peek_token_is(p, .Comma) {
+		next_token(p)
+		next_token(p)
+		append(&args, parse_expression(p, .Lowest))
+	}
+	if !expect_peek(p, .R_Paren) {
+		return nil
+	}
+	return args[:]
+}
