@@ -120,3 +120,37 @@ test_parsing_infix_expressions :: proc(t: ^testing.T) {
 		test_integer_literal(t, exp.right, tt.right_value)
 	}
 }
+@(test)
+test_operator_precedence_parsing :: proc(t: ^testing.T) {
+	tests := []struct {
+		input:    string,
+		expected: string,
+	} {
+		{"-a * b", "((-a) * b)"},
+		{"!-a", "(!(-a))"},
+		{"a + b + c", "((a + b) + c)"},
+		{"a + b - c", "((a + b) - c)"},
+		{"a * b * c", "((a * b) * c)"},
+		{"a * b / c", "((a * b) / c)"},
+		{"a + b / c", "(a + (b / c))"},
+		{"a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"},
+		{"3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"},
+		{"5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"},
+		{"5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"},
+		{"3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+	}
+
+	for tt in tests {
+		l := lexer.init_lexer(tt.input)
+		p := new_parser(l)
+		defer parser_free_errors(&p)
+
+		program := parse_program(&p)
+		defer ast.delete_node(program)
+		check_parser_errors(t, &p)
+
+		actual := ast.node_string(program)
+
+		testing.expect_value(t, actual, tt.expected)
+	}
+}
