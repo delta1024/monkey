@@ -86,3 +86,41 @@ parse_grouped_expressions :: proc(p: ^Parser) -> ast.Expression {
 	}
 	return exp
 }
+
+parse_if_expression :: proc(p: ^Parser) -> (expression: ast.Expression) {
+	if_tok := p.cur_token
+
+	if !expect_peek(p, .L_Paren) {
+		return nil
+	}
+
+	next_token(p)
+
+	condition := parse_expression(p, .Lowest)
+	defer if expression == nil {
+		ast.delete_node(condition)
+	}
+
+	if !expect_peek(p, .R_Paren) {
+		return nil
+	}
+
+	if !expect_peek(p, .L_Brace) {
+		return nil
+	}
+
+	consequence := parse_block_statement(p)
+
+	alternative: ^ast.Block_Statement
+	if peek_token_is(p, .Else) {
+		next_token(p)
+		if !expect_peek(p, .L_Brace) {
+			return nil
+		}
+
+		alternative = parse_block_statement(p)
+	}
+
+	return ast.make_node(ast.If_Expression, if_tok, condition, consequence, alternative)
+
+}

@@ -29,6 +29,7 @@ new_parser :: proc(l: lexer.Lexer) -> Parser {
 			.True = parse_boolean_literal,
 			.False = parse_boolean_literal,
 			.L_Paren = parse_grouped_expressions,
+			.If = parse_if_expression,
 		},
 		infix_parse_fns = map[token.Token_Type]Infix_Parse_Fn {
 			.Plus = parse_infix_expression,
