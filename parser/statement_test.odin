@@ -8,33 +8,31 @@ import "core:testing"
 
 @(test)
 test_let_statements :: proc(t: ^testing.T) {
-	input := `
-let x = 5;
-let y = 10;
-let foobar = 838383;
-`
 
-
-	l := lexer.init_lexer(input)
-	p := new_parser(l)
-	defer parser_free_errors(&p)
-
-	program := parse_program(&p)
-	if program == nil {
-		testing.fail_now(t, "parse_program returned nil")
-	}
-	defer ast.delete_node(program)
-	check_parser_errors(t, &p)
-
-	testing.expect_value(t, len(program.statements), 3)
 
 	tests := []struct {
+		input:               string,
 		expected_identifier: string,
-	}{{"x"}, {"y"}, {"foobar"}}
+		expected_value:      Expected_Value,
+	}{{"let x = 5;", "x", int(5)}, {"let y = true;", "y", true}, {"let foobar = y", "foobar", "y"}}
 
 	for tt, i in tests {
-		stmt := program.statements[i]
+		l := lexer.init_lexer(tt.input)
+		p := new_parser(l)
+		defer parser_free_errors(&p)
+
+		program := parse_program(&p)
+		defer ast.delete_node(program)
+		check_parser_errors(t, &p)
+
+		testing.expect_value(t, len(program.statements), 1)
+
+		stmt := program.statements[0]
 		test_let_statement(t, stmt, tt.expected_identifier)
+
+		val := stmt.(^ast.Let_Statement)
+		let_val := val.value
+		test_literal_expression(t, let_val, tt.expected_value)
 	}
 }
 
