@@ -14,6 +14,7 @@ Parser :: struct {
 	errors:           [dynamic]string,
 	prefix_parse_fns: map[token.Token_Type]Prefix_Parse_Fn,
 	infix_parse_fns:  map[token.Token_Type]Infix_Parse_Fn,
+	precedences:      map[token.Token_Type]Precedence,
 }
 
 new_parser :: proc(l: lexer.Lexer) -> Parser {
@@ -26,7 +27,26 @@ new_parser :: proc(l: lexer.Lexer) -> Parser {
 			.Bang = parse_prefix_expression,
 			.Minus = parse_prefix_expression,
 		},
-		infix_parse_fns = map[token.Token_Type]Infix_Parse_Fn{},
+		infix_parse_fns = map[token.Token_Type]Infix_Parse_Fn {
+			.Plus = parse_infix_expression,
+			.Minus = parse_infix_expression,
+			.Slash = parse_infix_expression,
+			.Asterisk = parse_infix_expression,
+			.Eq = parse_infix_expression,
+			.Not_Eq = parse_infix_expression,
+			.Lt = parse_infix_expression,
+			.Gt = parse_infix_expression,
+		},
+		precedences = map[token.Token_Type]Precedence {
+			.Eq = .Equals,
+			.Not_Eq = .Equals,
+			.Lt = .Less_Greater,
+			.Gt = .Less_Greater,
+			.Plus = .Sum,
+			.Minus = .Sum,
+			.Slash = .Product,
+			.Asterisk = .Product,
+		},
 	}
 	next_token(&p)
 	next_token(&p)
@@ -38,6 +58,7 @@ parser_free_errors :: proc(p: ^Parser) {
 	}
 	delete(p.infix_parse_fns)
 	delete(p.prefix_parse_fns)
+	delete(p.precedences)
 	delete(p.errors)
 }
 
@@ -91,4 +112,15 @@ peek_error :: proc(p: ^Parser, t: token.Token_Type) {
 no_prefix_parse_fn_error :: proc(p: ^Parser, t: token.Token_Type) {
 	msg := fmt.aprintf("no prefix parse function for %s found", token.token_strings[t])
 	append(&p.errors, msg)
+}
+@(private)
+peek_precedence :: proc(p: ^Parser) -> Precedence {
+	prec := p.precedences[p.peek_token.type] or_else .Lowest
+	return prec
+}
+
+@(private)
+cur_precedence :: proc(p: ^Parser) -> Precedence {
+	prec := p.precedences[p.cur_token.type] or_else .Lowest
+	return prec
 }
