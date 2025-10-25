@@ -2,6 +2,8 @@
 package parser
 
 import "../ast"
+import "core:fmt"
+import "core:strconv"
 
 Precedence :: enum u8 {
 	Lowest,
@@ -24,4 +26,15 @@ parse_expression :: proc(p: ^Parser, prec: Precedence) -> ast.Expression {
 
 parse_identifier :: proc(p: ^Parser) -> ast.Expression {
 	return ast.make_node(ast.Identifier, p.cur_token, p.cur_token.literal)
+}
+
+parse_integer_literal :: proc(p: ^Parser) -> ast.Expression {
+	lit_tok := p.cur_token
+	value, ok := strconv.parse_i64(p.cur_token.literal)
+	if !ok {
+		msg := fmt.aprintf("could not parse %q as integer", p.cur_token.literal)
+		append(&p.errors, msg)
+		return nil
+	}
+	return ast.make_node(ast.Integer_Literal, lit_tok, value)
 }

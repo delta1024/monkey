@@ -20,7 +20,10 @@ new_parser :: proc(l: lexer.Lexer) -> Parser {
 	p: Parser = {
 		l = l,
 		errors = make([dynamic]string),
-		prefix_parse_fns = map[token.Token_Type]Prefix_Parse_Fn{.Ident = parse_identifier},
+		prefix_parse_fns = map[token.Token_Type]Prefix_Parse_Fn {
+			.Ident = parse_identifier,
+			.Int = parse_integer_literal,
+		},
 		infix_parse_fns = map[token.Token_Type]Infix_Parse_Fn{},
 	}
 	next_token(&p)
