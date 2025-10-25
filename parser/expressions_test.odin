@@ -87,6 +87,84 @@ test_boolean_literal_expression :: proc(t: ^testing.T) {
 
 }
 @(test)
+test_function_literal_parsing :: proc(t: ^testing.T) {
+	input := "fn(x, y) { x + y; }"
+
+	l := lexer.init_lexer(input)
+	p := new_parser(l)
+	defer parser_free_errors(&p)
+
+	program := parse_program(&p)
+	defer ast.delete_node(program)
+	check_parser_errors(t, &p)
+
+	testing.expect_value(t, len(program.statements), 1)
+
+	stmt :=
+		program.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprint(
+				"expected ^ast.Expression_Statement. got=%s",
+				stmt_varient_name(program.statements[0]),
+			),
+		)
+
+	function :=
+		stmt.expression.(^ast.Function_Literal) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"stmt.expression is not ^ast.Function_Literal. got=%s",
+				expr_varient_name(stmt.expression),
+			),
+		)
+	testing.expect_value(t, len(function.parameters), 2)
+
+	test_literal_expression(t, function.parameters[0], "x")
+	test_literal_expression(t, function.parameters[1], "y")
+
+	testing.expect_value(t, len(function.body.statements), 1)
+
+	body_stmt :=
+		function.body.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprintf(
+				"function body stmt is not ^ast.Expression_Statement. got=%s",
+				stmt_varient_name(function.body.statements[0]),
+			),
+		)
+	test_infix_expression(t, body_stmt.expression, "x", "+", "y")
+
+}
+@(test)
+test_function_paramater_parsing :: proc(t: ^testing.T) {
+	tests := []struct {
+		input:           string,
+		expected_params: []string,
+	} {
+		{"fn() {};", []string{}},
+		{"fn(x) {};", []string{"x"}},
+		{"fn(x, y, z) {};", []string{"x", "y", "z"}},
+	}
+	for tt in tests {
+		l := lexer.init_lexer(tt.input)
+		p := new_parser(l)
+		defer parser_free_errors(&p)
+
+		program := parse_program(&p)
+		defer ast.delete_node(program)
+		check_parser_errors(t, &p)
+
+		stmt := program.statements[0].(^ast.Expression_Statement)
+		function := stmt.expression.(^ast.Function_Literal)
+
+		testing.expect_value(t, len(function.parameters), len(tt.expected_params))
+
+		for ident, i in tt.expected_params {
+			test_literal_expression(t, function.parameters[i], ident)
+		}
+	}
+}
+@(test)
 test_if_expression :: proc(t: ^testing.T) {
 	input := "if (x < y) { x }"
 
