@@ -38,24 +38,27 @@ parse_let_statement :: proc(p: ^Parser) -> (stmt: ^ast.Let_Statement) {
 		return nil
 	}
 
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !cur_token_is(p, .Semi_Colon) {
+	next_token(p)
+
+	stmt_value := parse_expression(p, .Lowest)
+
+	if peek_token_is(p, .Semi_Colon) {
 		next_token(p)
 	}
-	return ast.make_node(ast.Let_Statement, let_tok, stmt_name)
+
+	return ast.make_node(ast.Let_Statement, let_tok, stmt_name, stmt_value)
 }
 
 parse_return_statement :: proc(p: ^Parser) -> ^ast.Return_Statement {
 	ret_token := p.cur_token
 	next_token(p)
 
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !cur_token_is(p, .Semi_Colon) {
+	ret_val := parse_expression(p, .Lowest)
+
+	if peek_token_is(p, .Semi_Colon) {
 		next_token(p)
 	}
-	return ast.make_node(ast.Return_Statement, ret_token)
+	return ast.make_node(ast.Return_Statement, ret_token, ret_val)
 }
 parse_block_statement :: proc(p: ^Parser) -> ^ast.Block_Statement {
 
