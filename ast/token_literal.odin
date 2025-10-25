@@ -24,6 +24,8 @@ token_literal_expression_node :: proc(e: Expression) -> string {
 	switch n in e {
 	case ^Identifier:
 		node = n
+	case ^Integer_Literal:
+		node = n
 	case:
 		return ""
 	}

@@ -53,6 +53,8 @@ expression_node_string :: proc(e: Expression) -> string {
 	switch n in e {
 	case ^Identifier:
 		return node_string(n)
+	case ^Integer_Literal:
+		return node_string(n)
 	case:
 		return ""
 	}
@@ -60,6 +62,9 @@ expression_node_string :: proc(e: Expression) -> string {
 
 identifier_node_string :: proc(i: ^Identifier) -> string {
 	return i.value
+}
+integer_literal_string :: proc(il: ^Integer_Literal) -> string {
+	return il.token.literal
 }
 node_string :: proc {
 	program_node_string,
@@ -69,4 +74,5 @@ node_string :: proc {
 	expression_statement_node_string,
 	expression_node_string,
 	identifier_node_string,
+	integer_literal_string,
 }

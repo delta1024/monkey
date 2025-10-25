@@ -9,6 +9,7 @@ Node :: struct {
 		^Return_Statement,
 		^Expression_Statement,
 		^Identifier,
+		^Integer_Literal,
 	},
 }
 
@@ -40,9 +41,15 @@ Expression_Statement :: struct {
 
 Expression :: union {
 	^Identifier,
+	^Integer_Literal,
 }
 
 Identifier :: struct {
 	using node: Node,
 	value:      string,
+}
+
+Integer_Literal :: struct {
+	using node: Node,
+	value:      i64,
 }
