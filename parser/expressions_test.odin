@@ -3,6 +3,7 @@ package parser
 
 import "../ast"
 import "../lexer"
+import "core:fmt"
 import "core:testing"
 
 @(test)
@@ -23,12 +24,16 @@ test_identifier_statement :: proc(t: ^testing.T) {
 		"program has not enough statements. got=%d",
 		len(program.statements),
 	)
-	stmt := program.statements[0].(^ast.Expression_Statement)
+	stmt :=
+		program.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprint(
+				"expected ^ast.Expression_Statement. got=%s",
+				stmt_varient_name(program.statements[0]),
+			),
+		)
 
-	ident := stmt.expression.(^ast.Identifier)
-
-	testing.expect_value(t, ident.value, "foobar")
-	testing.expect_value(t, ast.token_literal(ident), "foobar")
+	test_literal_expression(t, stmt.expression, "foobar")
 }
 @(test)
 test_integer_literal_expression :: proc(t: ^testing.T) {
@@ -43,13 +48,17 @@ test_integer_literal_expression :: proc(t: ^testing.T) {
 	defer ast.delete_node(program)
 
 	testing.expect_value(t, len(program.statements), 1)
-	stmt := program.statements[0].(^ast.Expression_Statement)
+	stmt :=
+		program.statements[0].(^ast.Expression_Statement) or_else testing.fail_now(
+			t,
+			fmt.tprint(
+				"expected ^ast.Expression_Statement. got=%s",
+				stmt_varient_name(program.statements[0]),
+			),
+		)
 
-	literal := stmt.expression.(^ast.Integer_Literal)
 
-	testing.expect_value(t, literal.value, 5)
-
-	testing.expect_value(t, ast.token_literal(literal), "5")
+	test_literal_expression(t, stmt.expression, int(5))
 }
 @(test)
 test_parsing_prefix_expressions :: proc(t: ^testing.T) {
@@ -113,11 +122,11 @@ test_parsing_infix_expressions :: proc(t: ^testing.T) {
 
 		exp := stmt.expression.(^ast.Infix_Expression)
 
-		test_integer_literal(t, exp.left, tt.left_value)
+		test_literal_expression(t, exp.left, tt.left_value)
 
 		testing.expect_value(t, exp.operator, tt.operator)
 
-		test_integer_literal(t, exp.right, tt.right_value)
+		test_literal_expression(t, exp.right, tt.right_value)
 	}
 }
 @(test)
