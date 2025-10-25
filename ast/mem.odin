@@ -106,6 +106,18 @@ make_identifier_node :: proc($T: typeid/Identifier, tok: token.Token, value: str
 	return node
 }
 
+make_function_literal_node :: proc(
+	$T: typeid/Function_Literal,
+	tok: token.Token,
+	parameters: []^Identifier = nil,
+	body: ^Block_Statement = nil,
+) -> ^T {
+	node := make_base_node(T, tok)
+	node.parameters = parameters
+	node.body = body
+	return node
+}
+
 make_integer_literal_node :: proc(
 	$T: typeid/Integer_Literal,
 	tok: token.Token,
@@ -134,6 +146,7 @@ make_node :: proc {
 	make_prefix_expression_node,
 	make_if_expression_node,
 	make_identifier_node,
+	make_function_literal_node,
 	make_integer_literal_node,
 	make_boolean_literal_node,
 }
@@ -206,6 +219,8 @@ delete_expression_node :: proc(e: Expression) {
 		delete_node(node)
 	case ^If_Expression:
 		delete_node(node)
+	case ^Function_Literal:
+		delete_node(node)
 	case:
 	}
 }
@@ -231,6 +246,15 @@ delete_identifier_node :: proc(i: ^Identifier) {
 	free(i)
 }
 
+delete_function_literal_node :: proc(fl: ^Function_Literal) {
+	for ident in fl.parameters {
+		delete_node(ident)
+	}
+	delete(fl.parameters)
+	delete_node(fl.body)
+	free(fl)
+}
+
 delete_integer_literal_node :: proc(il: ^Integer_Literal) {
 	free(il)
 }
@@ -249,6 +273,7 @@ delete_node :: proc {
 	delete_prefix_expression_node,
 	delete_if_expression_node,
 	delete_identifier_node,
+	delete_function_literal_node,
 	delete_integer_literal_node,
 	delete_boolean_literal_node,
 }
