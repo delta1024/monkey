@@ -9,10 +9,20 @@ parse_statement :: proc(p: ^Parser) -> ast.Statement {
 	case .Return:
 		return parse_return_statement(p)
 	case:
-		return nil
+		return parse_expression_statement(p)
 	}
 }
 
+parse_expression_statement :: proc(p: ^Parser) -> ^ast.Expression_Statement {
+	stmt_token := p.cur_token
+
+	stmt_expression := parse_expression(p, .Lowest)
+
+	if peek_token_is(p, .Semi_Colon) {
+		next_token(p)
+	}
+	return ast.make_node(ast.Expression_Statement, stmt_token, stmt_expression)
+}
 parse_let_statement :: proc(p: ^Parser) -> (stmt: ^ast.Let_Statement) {
 	let_tok := p.cur_token
 	if !expect_peek(p, .Ident) {
