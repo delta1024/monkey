@@ -9,6 +9,8 @@ token_literal_statement_node :: proc(s: Statement) -> string {
 	switch n in s {
 	case ^Let_Statement:
 		node = n
+	case ^Return_Statement:
+		node = n
 	case:
 		return ""
 	}

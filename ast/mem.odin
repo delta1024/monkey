@@ -26,6 +26,16 @@ make_let_statement_node :: proc(
 	return node
 }
 
+make_return_statement_node :: proc(
+	$T: typeid/Return_Statement,
+	t: token.Token,
+	return_value: Expression = nil,
+) -> ^T {
+	node := make_base_node(T, t)
+	node.return_value = return_value
+	return node
+}
+
 make_identifier_node :: proc($T: typeid/Identifier, tok: token.Token, value: string = "") -> ^T {
 	node := make_base_node(T, tok)
 	if value == "" {
@@ -39,6 +49,7 @@ make_identifier_node :: proc($T: typeid/Identifier, tok: token.Token, value: str
 make_node :: proc {
 	make_program_node,
 	make_let_statement_node,
+	make_return_statement_node,
 	make_identifier_node,
 }
 
@@ -56,6 +67,8 @@ delete_statement_node :: proc(s: Statement) {
 	switch node in s {
 	case ^Let_Statement:
 		delete_node(node)
+	case ^Return_Statement:
+		delete_node(node)
 	case:
 	}
 }
@@ -67,6 +80,13 @@ delete_let_statement_node :: proc(ls: ^Let_Statement) {
 		delete_node(ls.value)
 	}
 	free(ls)
+}
+
+delete_return_statement_node :: proc(rs: ^Return_Statement) {
+	if rs.return_value != nil {
+		delete_node(rs.return_value)
+	}
+	free(rs)
 }
 
 delete_expression_node :: proc(e: Expression) {
@@ -85,6 +105,7 @@ delete_node :: proc {
 	delete_program_node,
 	delete_statement_node,
 	delete_let_statement_node,
+	delete_return_statement_node,
 	delete_expression_node,
 	delete_identifier_node,
 }
