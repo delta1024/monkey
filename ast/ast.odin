@@ -8,6 +8,7 @@ Node :: struct {
 		^Let_Statement,
 		^Return_Statement,
 		^Expression_Statement,
+		^Prefix_Expression,
 		^Identifier,
 		^Integer_Literal,
 	},
@@ -40,10 +41,16 @@ Expression_Statement :: struct {
 }
 
 Expression :: union {
+	^Prefix_Expression,
 	^Identifier,
 	^Integer_Literal,
 }
 
+Prefix_Expression :: struct {
+	using node: Node,
+	operator:   string,
+	right:      Expression,
+}
 Identifier :: struct {
 	using node: Node,
 	value:      string,
